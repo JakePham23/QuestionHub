@@ -1,3 +1,4 @@
+// src/app/exam/[versionId]/components/QuestionNavigation.tsx
 'use client'
 import { Button, Tooltip, Typography, Divider } from 'antd';
 import { 
@@ -151,7 +152,6 @@ const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
                                  '#fafafa'
                 }}
               >
-
                 <Text 
                   style={{ 
                     fontSize: '11px', 

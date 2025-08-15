@@ -16,7 +16,6 @@ interface Question {
   question_content: string;
   // Các trường khác nếu cần
 }
-
 export default async function ExamDataFetcher({ params }: ExamDataFetcherProps) {
   const versionId = params?.versionId;
 

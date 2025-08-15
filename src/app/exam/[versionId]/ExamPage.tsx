@@ -118,8 +118,10 @@ export default function ExamPage({
         const response = await fetch(`/api/exam/${versionId}/save`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-          },
+              'Content-Type': 'application/json',
+              // Thêm header này để bỏ qua cảnh báo của ngrok
+              'ngrok-skip-browser-warning': 'true', 
+            },
           body: JSON.stringify({
             answers: answers,
             timeLeft: timeLeft,

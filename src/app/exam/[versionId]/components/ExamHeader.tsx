@@ -1,12 +1,13 @@
-'use client'
 // src/app/exam/[versionId]/components/ExamHeader.tsx
+'use client'
 import { Layout, Button, Typography, Space, Row, Col } from 'antd';
 import { 
   ClockCircleOutlined, 
   SaveOutlined, 
   CheckCircleOutlined,
   QuestionCircleOutlined,
-  TrophyOutlined 
+  TrophyOutlined,
+  BarsOutlined 
 } from '@ant-design/icons';
 import React from 'react';
 
@@ -23,6 +24,7 @@ interface ExamHeaderProps {
   examStatus: ExamStatus;
   totalQuestions?: number;
   answeredCount?: number;
+  onShowNavigation?: () => void; // Prop mới
 }
 
 const formatTime = (seconds: number): string => {
@@ -37,11 +39,12 @@ const ExamHeader: React.FC<ExamHeaderProps> = ({
   onSubmit, 
   examStatus,
   totalQuestions = 0,
-  answeredCount = 0 
+  answeredCount = 0,
+  onShowNavigation
 }) => {
   const isFinished = examStatus === 'submitted' || examStatus === 'time-up';
-  const isTimeWarning = timeLeft <= 300 && !isFinished; // 5 minutes warning
-  const isTimeCritical = timeLeft <= 60 && !isFinished; // 1 minute critical
+  const isTimeWarning = timeLeft <= 300 && !isFinished;
+  const isTimeCritical = timeLeft <= 60 && !isFinished;
 
   const getTimeColor = () => {
     if (isFinished) return '#52c41a';
@@ -57,7 +60,7 @@ const ExamHeader: React.FC<ExamHeaderProps> = ({
         padding: '0 24px',
         borderBottom: '2px solid #f0f0f0',
         boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-        position: 'fixed', // Sử dụng fixed để header luôn cố định
+        position: 'fixed',
         top: 0,
         left: 0,
         right: 0,
@@ -69,41 +72,48 @@ const ExamHeader: React.FC<ExamHeaderProps> = ({
       }}
     >
       <Row style={{ width: '100%' }} justify="space-between" align="middle">
-        {/* Left: Title and Progress */}
         <Col flex="auto">
-          <div>
-            <Title level={4} style={{ margin: 0, color: '#1890ff' }}>
-              🎯 Đề thi mã số {versionId}
-            </Title>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '8px' }}>
-              <Space size="middle">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <CheckCircleOutlined style={{ color: '#52c41a', fontSize: '14px' }} />
-                  <Text style={{ fontSize: '14px', color: '#52c41a', fontWeight: 'bold' }}>
-                    {answeredCount}
-                  </Text>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <QuestionCircleOutlined style={{ color: '#d9d9d9', fontSize: '14px' }} />
-                  <Text style={{ fontSize: '14px', color: '#8c8c8c', fontWeight: 'bold' }}>
-                    {totalQuestions - answeredCount}
-                  </Text>
-                </div>
-              </Space>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            {/* Nút hamburger chỉ hiển thị khi có onShowNavigation (tức là ở mobile) */}
+            {onShowNavigation && (
+              <Button
+                type="text"
+                icon={<BarsOutlined />}
+                onClick={onShowNavigation}
+                style={{ fontSize: '24px', color: '#1890ff' }}
+              />
+            )}
+            <div>
+              <Title level={4} style={{ margin: 0, color: '#1890ff' }}>
+                🎯 Đề thi mã số {versionId}
+              </Title>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '8px' }}>
+                <Space size="middle">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <CheckCircleOutlined style={{ color: '#52c41a', fontSize: '14px' }} />
+                    <Text style={{ fontSize: '14px', color: '#52c41a', fontWeight: 'bold' }}>
+                      {answeredCount}
+                    </Text>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <QuestionCircleOutlined style={{ color: '#d9d9d9', fontSize: '14px' }} />
+                    <Text style={{ fontSize: '14px', color: '#8c8c8c', fontWeight: 'bold' }}>
+                      {totalQuestions - answeredCount}
+                    </Text>
+                  </div>
+                </Space>
+              </div>
             </div>
           </div>
         </Col>
 
-        {/* Right: Timer and Submit */}
         <Col>
           <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-            {/* Timer */}
             <div style={{ 
               display: 'flex', 
               flexDirection: 'column', 
               alignItems: 'center',
               padding: '8px 16px',
-              // Không cần position: sticky ở đây nữa
               background: isFinished ? '#f6ffed' : 
                          isTimeCritical ? '#fff2f0' : 
                          isTimeWarning ? '#fff7e6' : '#e6f7ff',
@@ -136,7 +146,6 @@ const ExamHeader: React.FC<ExamHeaderProps> = ({
               </Text>
             </div>
 
-            {/* Submit Button */}
             <Button
               type="primary"
               size="large"

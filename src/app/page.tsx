@@ -64,9 +64,11 @@ export default function Home() {
       try {
         setLoading(true);
         const response = await fetch(`${api_backend}/data_info`, {
-          headers: {
-            'ngrok-skip-browser-warning': 'true',
-          }
+                  headers: {
+            'Content-Type': 'application/json',
+            // Thêm header này để bỏ qua cảnh báo của ngrok
+            'ngrok-skip-browser-warning': 'true', 
+          },
         });        
         if (!response.ok) {
           throw new Error('Không thể kết nối tới server.');
