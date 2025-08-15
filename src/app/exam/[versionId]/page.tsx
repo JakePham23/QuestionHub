@@ -1,14 +1,12 @@
-// server-side rendering
 import ExamPage from './ExamPage';
 import { api_backend } from '../../../utils/api';
 
-interface ExamPageProps {
-  params: {
-    versionId: string;
-  };
-}
-
-export default async function ExamDataFetcher({ params }: ExamPageProps) {
+// Không cần định nghĩa interface riêng
+export default async function ExamDataFetcher({
+  params,
+}: {
+  params: { versionId: string }
+}) {
   const versionId = params.versionId;
 
   async function getExamByVersionId(id: string) {
@@ -35,7 +33,7 @@ export default async function ExamDataFetcher({ params }: ExamPageProps) {
   try {
     const data = await getExamByVersionId(versionId);
     questions = data;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     error = err.message;
   }
