@@ -1,14 +1,13 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Layout, Spin, Alert, Modal, notification, Card, Button } from 'antd';
+import { Layout, Spin, Alert, Modal, Card, Button, App } from 'antd';
 import QuestionList from './components/QuestionList';
 import ExamHeader from './components/ExamHeader';
 import QuestionNavigation from './components/QuestionNavigation';
 import React from 'react';
 
 const { Content, Sider } = Layout;
-
 // Khai báo các hằng số
 const EXAM_DURATION_SECONDS = 5400;
 const AUTO_SAVE_INTERVAL = 10000; // Auto-save mỗi 10 giây
@@ -65,6 +64,7 @@ export default function ExamPage({
 
   const autoSaveIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const storageKey = `${STORAGE_KEY}${versionId}`;
+  const { message, notification, modal } = App.useApp();
 
   // ===== AUTO-SAVE FUNCTIONS =====
   const saveToStorage = useCallback(
@@ -143,14 +143,13 @@ export default function ExamPage({
   );
 
   // ===== RECOVERY ON PAGE LOAD =====
-useEffect(() => {
-  const savedData = loadFromStorage();
-  if (savedData && savedData.examStatus !== 'submitted') {
-    setIsRecovering(true);
+  useEffect(() => {
+    const savedData = loadFromStorage();
+    if (savedData && savedData.examStatus !== 'submitted') {
+      setIsRecovering(true);
 
-    // FIX: Wrap Modal.confirm in setTimeout to ensure context is available
-    setTimeout(() => {
-      Modal.confirm({
+      // Use Modal.confirm directly instead of modal.confirm from App context
+      modal.confirm({
         title: '🔄 Khôi phục bài làm',
         content: (
           <div>
@@ -194,12 +193,8 @@ useEffect(() => {
           });
         },
       });
-    }, 0); // Delay of 0 ensures it runs after the current task queue
-  }
-}, [loadFromStorage, clearStorage]);
-
-
-
+    }
+  }, [loadFromStorage, clearStorage]);
 
   // ===== AUTO-SAVE TIMER =====
   useEffect(() => {
@@ -284,34 +279,32 @@ useEffect(() => {
   );
 
   // ===== EXAM TIMER =====
-useEffect(() => {
-  if (examStatus === 'in-progress' && timeLeft > 0) {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        const newTime = prev - 1;
-        // Save time every minute
-        if (newTime % 60 === 0) {
-          saveToStorage({ timeLeft: newTime });
-        }
-        return newTime;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }
-  if (timeLeft === 0 && examStatus === 'in-progress') {
-    setExamStatus('time-up');
-    // Auto-submit và clear storage
-    saveToServer(userAnswers);
-    clearStorage();
-    // FIX: Wrap Modal.warning in setTimeout
-    setTimeout(() => {
+  useEffect(() => {
+    if (examStatus === 'in-progress' && timeLeft > 0) {
+      const timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          const newTime = prev - 1;
+          // Save time every minute
+          if (newTime % 60 === 0) {
+            saveToStorage({ timeLeft: newTime });
+          }
+          return newTime;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+    if (timeLeft === 0 && examStatus === 'in-progress') {
+      setExamStatus('time-up');
+      // Auto-submit và clear storage
+      saveToServer(userAnswers);
+      clearStorage();
+      // Use Modal.warning directly
       Modal.warning({
         title: 'Hết giờ làm bài!',
         content: 'Bài làm của bạn đã được tự động nộp.',
       });
-    }, 0);
-  }
-}, [examStatus, timeLeft, saveToStorage, saveToServer, userAnswers, clearStorage]);
+    }
+  }, [examStatus, timeLeft, saveToStorage, saveToServer, userAnswers, clearStorage]);
 
   // ===== SCROLL TRACKING =====
   useEffect(() => {
@@ -362,8 +355,8 @@ useEffect(() => {
   // Bọc Spin trong một div có kích thước cụ thể.
   if (isRecovering) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <Spin size="large" tip="Đang khởi phục bài làm...">
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <Spin size="large" tip="Đang khôi phục bài làm...">
           <div style={{ minHeight: 200 }}></div>
         </Spin>
       </div>
