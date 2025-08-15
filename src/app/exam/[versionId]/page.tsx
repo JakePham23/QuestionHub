@@ -4,11 +4,7 @@ import { api_backend } from '../../../utils/api';
 
 // Định nghĩa kiểu dữ liệu cho props của component
 // Đảm bảo kiểu dữ liệu params khớp với tên thư mục [versionId]
-interface ExamDataFetcherProps {
-  params: {
-    versionId: string;
-  };
-}
+type Params = Promise<{ versionId: string}>
 
 // Định nghĩa kiểu dữ liệu cho câu hỏi
 interface Question {
@@ -18,9 +14,9 @@ interface Question {
   // Thêm các trường khác nếu có
 }
 
-export default async function ExamDataFetcher({ params }: ExamDataFetcherProps) {
+export default async function ExamDataFetcher({ params }: { params: Params }) {
   // Lấy versionId từ params
-  const { versionId } = params;
+  const { versionId } = await params
 
   async function getExamByVersionId(id: string): Promise<Question[]> {
     if (!id) {
