@@ -1,21 +1,20 @@
 // src/app/exam/[versionId]/page.tsx
-import { notFound } from 'next/navigation';
+import ExamPage from './ExamPage';
 import { api_backend } from '../../../utils/api';
-import ExamPage from './ExamPage'; // Import component đã tách ra
+import { Alert } from 'antd'; // Thêm import Alert
 
 // Định nghĩa kiểu dữ liệu cho props của component
-type Params = { versionId: string };
-interface PageProps {
-  params: Params;
-}
+type Params = Promise<{ versionId: string}>
 
-// Định nghĩa kiểu dữ liệu cho câu hỏi và chi tiết đề thi (giữ nguyên)
+// Định nghĩa kiểu dữ liệu cho câu hỏi
 interface Question {
   question_id: string;
   question_type: string;
   question_content: string;
+  // Thêm các trường khác nếu có
 }
 
+// Định nghĩa kiểu dữ liệu cho chi tiết đề thi
 interface ExamDetail {
   exam_id: string;
   title: string;
@@ -29,7 +28,7 @@ interface ExamDetail {
 // Hàm lấy dữ liệu từ hai API
 async function fetchData(versionId: string) {
   if (!versionId) {
-    notFound(); 
+    throw new Error('ID đề thi không tồn tại');
   }
 
   try {
@@ -44,10 +43,6 @@ async function fetchData(versionId: string) {
       }),
     ]);
 
-    if (res1.status === 404 || res2.status === 404) {
-      notFound();
-    }
-
     if (!res1.ok || !res2.ok) {
       throw new Error('Không thể tải đề thi từ server');
     }
@@ -56,14 +51,14 @@ async function fetchData(versionId: string) {
     const examDetail: ExamDetail = await res2.json();
 
     return { questions, examDetail };
+
   } catch (err) {
     console.error(err);
     throw new Error('Lỗi kết nối hoặc tải dữ liệu');
   }
 }
 
-// Next.js sẽ tự động cung cấp props, bạn chỉ cần định nghĩa kiểu cho params
-export default async function ExamDataFetcher({ params }: PageProps) {
+export default async function ExamDataFetcher({ params }: { params: Params }) {
   const { versionId } = params;
 
   let questions: Question[] = [];
@@ -74,17 +69,31 @@ export default async function ExamDataFetcher({ params }: PageProps) {
     const data = await fetchData(versionId);
     questions = data.questions;
     examDetail = data.examDetail;
-  } 
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+
+  }         // eslint-disable-next-line @typescript-eslint/no-explicit-any 
   catch (err: any) {
     error = err.message;
   }
 
-  // Luôn trả về component hiển thị giao diện
+  // Thêm kiểm tra ở đây
+  if (error || !examDetail) {
+    return (
+      <div style={{ padding: '50px', textAlign: 'center' }}>
+        <Alert
+          message="Lỗi"
+          description={error || 'Không thể tải chi tiết đề thi.'}
+          type="error"
+          showIcon
+        />
+      </div>
+    );
+  }
+
   return (
     <ExamPage
       versionId={versionId}
-      examDetail={examDetail as ExamDetail} // Sử dụng type assertion
+      examDetail={examDetail} // Lúc này examDetail chắc chắn không phải null
       initialQuestions={questions}
       initialError={error}
     />
