@@ -59,7 +59,7 @@ async function fetchData(versionId: string) {
 }
 
 export default async function ExamDataFetcher({ params }: { params: Params }) {
-  const { versionId } = params;
+  const { versionId } = await params;
 
   let questions: Question[] = [];
   let examDetail: ExamDetail | null = null;
