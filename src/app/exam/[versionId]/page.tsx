@@ -65,7 +65,7 @@ async function fetchData(versionId: string) {
 }
 
 // Sửa kiểu dữ liệu của props để khớp với PageProps
-export default async function ExamDataFetcher({ params }: { params: Params }) {
+export default async function ExamDataFetcher({ params }: PageProps) {
   const { versionId } = params;
 
   let questions: Question[] = [];
