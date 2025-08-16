@@ -69,7 +69,8 @@ export default function Home() {
             // Thêm header này để bỏ qua cảnh báo của ngrok
             'ngrok-skip-browser-warning': 'true', 
           },
-        });        
+        });
+        console.log(api_backend)        
         if (!response.ok) {
           throw new Error('Không thể kết nối tới server.');
         }
