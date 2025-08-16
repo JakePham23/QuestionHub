@@ -1,4 +1,5 @@
 // src/app/exam/[versionId]/page.tsx
+import { notFound } from 'next/navigation'; // Import notFound from next/navigation
 import ExamPage from './ExamPage';
 import { api_backend } from '../../../utils/api';
 import { Alert } from 'antd'; 
@@ -7,10 +8,6 @@ import { Alert } from 'antd';
 
 // Định nghĩa kiểu dữ liệu cho props của component
 type Params = { versionId: string };
-// Correctly define the PageProps type as Next.js expects
-interface PageProps {
-  params: Params;
-}
 
 // Định nghĩa kiểu dữ liệu cho câu hỏi
 interface Question {
@@ -34,7 +31,8 @@ interface ExamDetail {
 // Hàm lấy dữ liệu từ hai API
 async function fetchData(versionId: string) {
   if (!versionId) {
-    throw new Error('ID đề thi không tồn tại');
+    // Sử dụng notFound() để trả về trang 404 nếu không có ID
+    notFound(); 
   }
 
   try {
@@ -48,6 +46,11 @@ async function fetchData(versionId: string) {
         cache: 'no-store',
       }),
     ]);
+
+    // Sử dụng notFound() nếu API trả về lỗi 404
+    if (res1.status === 404 || res2.status === 404) {
+      notFound();
+    }
 
     if (!res1.ok || !res2.ok) {
       throw new Error('Không thể tải đề thi từ server');
@@ -64,8 +67,8 @@ async function fetchData(versionId: string) {
   }
 }
 
-// Sửa kiểu dữ liệu của props để khớp với PageProps
-export default async function ExamDataFetcher({ params }: PageProps) {
+// Next.js sẽ tự động cung cấp props, bạn chỉ cần định nghĩa kiểu cho params
+export default async function ExamDataFetcher({ params }: { params: Params }) {
   const { versionId } = params;
 
   let questions: Question[] = [];
@@ -77,12 +80,12 @@ export default async function ExamDataFetcher({ params }: PageProps) {
     questions = data.questions;
     examDetail = data.examDetail;
 
-  } // eslint-disable-next-line @typescript-eslint/no-explicit-any 
+  } 
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
   catch (err: any) {
     error = err.message;
   }
 
-  // Thêm kiểm tra ở đây
   if (error || !examDetail) {
     return (
       <div style={{ padding: '50px', textAlign: 'center' }}>
@@ -99,7 +102,7 @@ export default async function ExamDataFetcher({ params }: PageProps) {
   return (
     <ExamPage
       versionId={versionId}
-      examDetail={examDetail} // Lúc này examDetail chắc chắn không phải null
+      examDetail={examDetail}
       initialQuestions={questions}
       initialError={error}
     />
