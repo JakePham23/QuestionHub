@@ -1,15 +1,17 @@
 // src/app/exam/[versionId]/components/QuestionNavigation.tsx
 'use client'
-import { Button, Tooltip, Typography, Divider } from 'antd';
+import { Button, Tooltip, Typography, Divider, Progress, Grid } from 'antd';
 import { 
   CheckCircleOutlined, 
   QuestionCircleOutlined,
   EyeOutlined,
-  BarsOutlined
+  BarsOutlined,
+  FireOutlined
 } from '@ant-design/icons';
 import React from 'react';
 
 const { Title, Text } = Typography;
+const { useBreakpoint } = Grid;
 
 // Định nghĩa các kiểu dữ liệu
 interface Question {
@@ -40,6 +42,8 @@ const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
   collapsed,
   examStatus 
 }) => {
+  const screens = useBreakpoint();
+  const isMobile = screens.xs || screens.sm;
   const isFinished = examStatus === 'submitted' || examStatus === 'time-up';
 
   const getQuestionStatus = (question: Question, index: number): 'current' | 'answered' | 'unanswered' => {
@@ -55,28 +59,44 @@ const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
     }
   };
 
-  const getQuestionColor = (status: 'current' | 'answered' | 'unanswered'): string => {
-    switch (status) {
-      case 'current':
-        return '#1890ff';
-      case 'answered':
-        return '#52c41a';
-      default:
-        return '#d9d9d9';
-    }
-  };
+  // Tính toán thống kê
+  const answeredCount = questions.filter(q => userAnswers.hasOwnProperty(q.question_id)).length;
+  const progressPercent = Math.round((answeredCount / questions.length) * 100);
 
   if (collapsed) {
     return (
-      <div style={{ padding: '16px 8px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-          <BarsOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
+      <div style={{ 
+        padding: isMobile ? '12px 6px' : '16px 8px',
+        background: 'linear-gradient(135deg, #f6f8fb 0%, #e9ecef 100%)',
+        height: '100%'
+      }}>
+        <div style={{ 
+          textAlign: 'center', 
+          marginBottom: '16px',
+          padding: '8px',
+          background: '#fff',
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }}>
+          <BarsOutlined style={{ 
+            fontSize: isMobile ? '16px' : '20px', 
+            color: '#1890ff',
+            marginBottom: '4px'
+          }} />
+          <div style={{ fontSize: '10px', color: '#666', fontWeight: 'bold' }}>
+            {answeredCount}/{questions.length}
+          </div>
         </div>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: isMobile ? '4px' : '6px',
+          maxHeight: 'calc(100vh - 150px)',
+          overflowY: 'auto'
+        }}>
           {questions.map((question, index) => {
             const status = getQuestionStatus(question, index);
-            const color = getQuestionColor(status);
             
             return (
               <Tooltip 
@@ -86,17 +106,38 @@ const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
               >
                 <Button
                   size="small"
-                  shape="circle"
                   onClick={() => onQuestionClick(index)}
                   style={{
-                    backgroundColor: status === 'current' ? '#1890ff' : 'transparent',
-                    borderColor: color,
-                    color: status === 'current' ? '#fff' : color,
+                    width: '100%',
+                    height: isMobile ? '28px' : '32px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: status === 'current' 
+                      ? 'linear-gradient(135deg, #1890ff, #40a9ff)'
+                      : status === 'answered'
+                      ? 'linear-gradient(135deg, #52c41a, #73d13d)'
+                      : '#f5f5f5',
+                    color: status === 'unanswered' ? '#8c8c8c' : '#fff',
                     fontWeight: 'bold',
-                    width: '32px',
-                    height: '32px'
+                    fontSize: isMobile ? '11px' : '12px',
+                    boxShadow: status !== 'unanswered' ? '0 2px 4px rgba(0,0,0,0.15)' : 'none',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (status === 'unanswered') {
+                      e.currentTarget.style.background = '#e6f7ff';
+                      e.currentTarget.style.color = '#1890ff';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (status === 'unanswered') {
+                      e.currentTarget.style.background = '#f5f5f5';
+                      e.currentTarget.style.color = '#8c8c8c';
+                    }
                   }}
                 >
+                  {status === 'current' && <FireOutlined style={{ marginRight: '4px' }} />}
+                  {status === 'answered' && <CheckCircleOutlined style={{ marginRight: '4px' }} />}
                   {index + 1}
                 </Button>
               </Tooltip>
@@ -107,82 +148,226 @@ const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
     );
   }
 
+  const gridColumns = isMobile ? 5 : 6; // Mobile: 5 cột, Desktop: 6 cột
+
   return (
     <div style={{ 
-      padding: '20px 8px', 
-      height: '70vh', 
-      overflowY: 'auto'
+      padding: isMobile ? '16px 12px' : '20px 16px',
+      height: '100vh',
+      overflowY: 'auto',
+      background: 'linear-gradient(135deg, #f6f8fb 0%, #e9ecef 100%)'
     }}>
-      {/* Header */}
-      <div style={{ marginBottom: '20px', position: 'sticky', top: '0', zIndex: '10', background: '#fff' }}>
-        <Title level={5} style={{ margin: 0, color: '#1890ff' }}>
-          📋 Danh sách câu hỏi
-        </Title>
+      {/* Header với Progress */}
+      <div style={{ 
+        marginBottom: '20px',
+        background: '#fff',
+        padding: '16px',
+        borderRadius: '12px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+        border: '1px solid #e8e8e8'
+      }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          marginBottom: '12px'
+        }}>
+          <Title level={isMobile ? 5 : 4} style={{ margin: 0, color: '#1890ff' }}>
+            📋 Danh sách câu hỏi
+          </Title>
+          <div style={{
+            background: 'linear-gradient(135deg, #1890ff, #40a9ff)',
+            color: '#fff',
+            padding: '4px 12px',
+            borderRadius: '12px',
+            fontSize: '12px',
+            fontWeight: 'bold'
+          }}>
+            {answeredCount}/{questions.length}
+          </div>
+        </div>
+        
+        <Progress
+          percent={progressPercent}
+          strokeColor={{
+            from: '#108ee9',
+            to: '#87d068',
+          }}
+          trailColor="#f0f0f0"
+          strokeWidth={8}
+          showInfo={false}
+          style={{ marginBottom: '8px' }}
+        />
+        
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between',
+          fontSize: '12px',
+          color: '#666'
+        }}>
+          <span>Tiến độ: {progressPercent}%</span>
+          <span>Còn lại: {questions.length - answeredCount} câu</span>
+        </div>
       </div>
 
-      <Divider style={{ margin: '16px 0' }} />
+      {/* Legend */}
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-around',
+        marginBottom: '16px',
+        background: '#fff',
+        padding: '12px',
+        borderRadius: '8px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{
+            width: '12px',
+            height: '12px',
+            borderRadius: '3px',
+            background: 'linear-gradient(135deg, #1890ff, #40a9ff)'
+          }} />
+          <Text style={{ fontSize: '11px', color: '#666' }}>Hiện tại</Text>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{
+            width: '12px',
+            height: '12px',
+            borderRadius: '3px',
+            background: 'linear-gradient(135deg, #52c41a, #73d13d)'
+          }} />
+          <Text style={{ fontSize: '11px', color: '#666' }}>Đã làm</Text>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{
+            width: '12px',
+            height: '12px',
+            borderRadius: '3px',
+            background: '#f5f5f5',
+            border: '1px solid #d9d9d9'
+          }} />
+          <Text style={{ fontSize: '11px', color: '#666' }}>Chưa làm</Text>
+        </div>
+      </div>
 
       {/* Question Grid */}
       <div style={{ 
         display: 'grid', 
-        gridTemplateColumns: 'repeat(4, 1fr)', 
-        gap: '8px',
+        gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
+        gap: isMobile ? '8px' : '10px',
+        marginBottom: '20px'
       }}>
         {questions.map((question, index) => {
           const status = getQuestionStatus(question, index);
-          const color = getQuestionColor(status);
           
           return (
             <Tooltip 
               key={question.question_id} 
-              title={`Câu ${index + 1}`}
+              title={`Câu ${index + 1} - ${status === 'answered' ? 'Đã trả lời' : status === 'current' ? 'Đang làm' : 'Chưa trả lời'}`}
             >
               <Button
-                size="small"
                 onClick={() => onQuestionClick(index)}
                 style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  padding: '12px 4px',
-                  height: '15px',
-                  borderColor: color,
-                  backgroundColor: status === 'current' ? '#e6f7ff' : 
-                                 status === 'answered' ? '#f6ffed' : 
-                                 '#fafafa'
+                  height: isMobile ? '36px' : '40px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: status === 'current' 
+                    ? 'linear-gradient(135deg, #1890ff, #40a9ff)'
+                    : status === 'answered'
+                    ? 'linear-gradient(135deg, #52c41a, #73d13d)'
+                    : '#fff',
+                  color: status === 'unanswered' ? '#8c8c8c' : '#fff',
+                  fontWeight: 'bold',
+                  fontSize: isMobile ? '12px' : '14px',
+                  boxShadow: status !== 'unanswered' 
+                    ? '0 3px 8px rgba(0,0,0,0.15)' 
+                    : '0 2px 4px rgba(0,0,0,0.05)',
+                  transition: 'all 0.3s ease',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+                onMouseEnter={(e) => {
+                  if (status === 'unanswered') {
+                    e.currentTarget.style.background = 'linear-gradient(135deg, #e6f7ff, #bae7ff)';
+                    e.currentTarget.style.color = '#1890ff';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (status === 'unanswered') {
+                    e.currentTarget.style.background = '#fff';
+                    e.currentTarget.style.color = '#8c8c8c';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }
                 }}
               >
-                <Text 
-                  style={{ 
-                    fontSize: '11px', 
-                    fontWeight: status === 'current' ? 'bold' : 'normal',
-                    color: status === 'current' ? '#1890ff' : 
-                           status === 'answered' ? '#52c41a' : 
-                           '#8c8c8c'
-                  }}
-                >
+                {status === 'current' && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '2px',
+                    right: '2px',
+                    width: '6px',
+                    height: '6px',
+                    background: '#fff',
+                    borderRadius: '50%',
+                    animation: 'pulse 1.5s infinite'
+                  }} />
+                )}
+                
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                  {status === 'answered' && <CheckCircleOutlined style={{ fontSize: '10px' }} />}
                   {index + 1}
-                </Text>
+                </div>
               </Button>
             </Tooltip>
           );
         })}
       </div>
 
-      {/* Summary */}
+      {/* Summary Card */}
       {!isFinished && (
         <div style={{ 
-          marginTop: '20px',
-          padding: '12px',
-          background: '#f6ffed',
+          background: 'linear-gradient(135deg, #f6ffed, #d9f7be)',
           border: '1px solid #b7eb8f',
-          borderRadius: '6px'
+          borderRadius: '12px',
+          padding: '16px',
+          boxShadow: '0 4px 12px rgba(135, 208, 104, 0.15)'
         }}>
-          <Text style={{ fontSize: '12px', color: '#666' }}>
-            💡 <strong>Gợi ý:</strong> Click vào số câu để nhảy đến câu hỏi đó
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px',
+            marginBottom: '8px'
+          }}>
+            <div style={{
+              background: '#52c41a',
+              color: '#fff',
+              borderRadius: '50%',
+              width: '24px',
+              height: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '12px'
+            }}>
+              💡
+            </div>
+            <Text style={{ fontSize: '13px', fontWeight: 'bold', color: '#389e0d' }}>
+              Mẹo làm bài
+            </Text>
+          </div>
+          <Text style={{ fontSize: '12px', color: '#666', lineHeight: '1.5' }}>
+            Click vào số câu để nhảy nhanh. Màu xanh dương là câu đang làm, màu xanh lá là đã hoàn thành.
           </Text>
         </div>
       )}
+
+      <style jsx>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
     </div>
   );
 };

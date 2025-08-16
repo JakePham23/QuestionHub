@@ -1,6 +1,6 @@
 // src/app/exam/[versionId]/components/ExamHeader.tsx
 'use client'
-import { Layout, Button, Typography, Space, Row, Col } from 'antd';
+import { Layout, Button, Typography, Space, Row, Col, Grid } from 'antd';
 import { 
   ClockCircleOutlined, 
   SaveOutlined, 
@@ -13,18 +13,19 @@ import React from 'react';
 
 const { Header } = Layout;
 const { Title, Text } = Typography;
+const { useBreakpoint } = Grid;
 
 // Định nghĩa các kiểu dữ liệu
 type ExamStatus = 'not-started' | 'in-progress' | 'submitted' | 'time-up';
 
 interface ExamHeaderProps {
-  versionId: string;
+  title: string;
   timeLeft: number;
   onSubmit: () => void;
   examStatus: ExamStatus;
   totalQuestions?: number;
   answeredCount?: number;
-  onShowNavigation?: () => void; // Prop mới
+  onShowNavigation?: () => void;
 }
 
 const formatTime = (seconds: number): string => {
@@ -34,7 +35,7 @@ const formatTime = (seconds: number): string => {
 };
 
 const ExamHeader: React.FC<ExamHeaderProps> = ({ 
-  versionId, 
+  title, 
   timeLeft, 
   onSubmit, 
   examStatus,
@@ -42,6 +43,10 @@ const ExamHeader: React.FC<ExamHeaderProps> = ({
   answeredCount = 0,
   onShowNavigation
 }) => {
+  const screens = useBreakpoint();
+  const isMobile = screens.xs || screens.sm; // Mở rộng cho tablet nhỏ
+  const isVerySmall = screens.xs; // Chỉ điện thoại rất nhỏ
+  
   const isFinished = examStatus === 'submitted' || examStatus === 'time-up';
   const isTimeWarning = timeLeft <= 300 && !isFinished;
   const isTimeCritical = timeLeft <= 60 && !isFinished;
@@ -57,7 +62,7 @@ const ExamHeader: React.FC<ExamHeaderProps> = ({
     <Header
       style={{
         background: '#fff',
-        padding: '0 24px',
+        padding: isMobile ? '0 12px' : '0 24px',
         borderBottom: '2px solid #f0f0f0',
         boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
         position: 'fixed',
@@ -65,107 +70,235 @@ const ExamHeader: React.FC<ExamHeaderProps> = ({
         left: 0,
         right: 0,
         zIndex: 1000,
-        height: '80px',
+        height: isMobile ? '60px' : '80px', // Mobile optimized height
         lineHeight: 'normal',
         display: 'flex',
         alignItems: 'center'
       }}
     >
-      <Row style={{ width: '100%' }} justify="space-between" align="middle">
-        <Col flex="auto">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {/* Nút hamburger chỉ hiển thị khi có onShowNavigation (tức là ở mobile) */}
+      {isMobile ? (
+        // Layout mobile: Compact single row
+        <div style={{ 
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          {/* Left side: Menu + Title + Stats */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '6px', 
+            flex: 1,
+            minWidth: 0
+          }}>
             {onShowNavigation && (
               <Button
                 type="text"
                 icon={<BarsOutlined />}
                 onClick={onShowNavigation}
-                style={{ fontSize: '24px', color: '#1890ff' }}
+                style={{ 
+                  fontSize: '16px', 
+                  color: '#1890ff',
+                  minWidth: 'auto',
+                  padding: '0 2px',
+                  width: '28px',
+                  height: '28px'
+                }}
               />
             )}
-            <div>
-              <Title level={4} style={{ margin: 0, color: '#1890ff' }}>
-                🎯 Đề thi mã số {versionId}
+            
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <Title level={5} style={{ 
+                margin: 0, 
+                color: '#1890ff',
+                fontSize: isVerySmall ? '13px' : '14px',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                lineHeight: '1.2'
+              }}>
+                🎯 {title}
               </Title>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '8px' }}>
-                <Space size="middle">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <CheckCircleOutlined style={{ color: '#52c41a', fontSize: '14px' }} />
-                    <Text style={{ fontSize: '14px', color: '#52c41a', fontWeight: 'bold' }}>
+              
+              {/* Question stats underneath title */}
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center',
+                gap: '4px',
+                marginTop: '2px'
+              }}>
+                <Space size="small">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                    <CheckCircleOutlined style={{ color: '#52c41a', fontSize: '10px' }} />
+                    <Text style={{ fontSize: '10px', color: '#52c41a', fontWeight: 'bold' }}>
                       {answeredCount}
                     </Text>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <QuestionCircleOutlined style={{ color: '#d9d9d9', fontSize: '14px' }} />
-                    <Text style={{ fontSize: '14px', color: '#8c8c8c', fontWeight: 'bold' }}>
-                      {totalQuestions - answeredCount}
-                    </Text>
-                  </div>
+                  <Text style={{ fontSize: '10px', color: '#8c8c8c' }}>
+                    /{totalQuestions}
+                  </Text>
                 </Space>
               </div>
             </div>
           </div>
-        </Col>
 
-        <Col>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+          {/* Right side: Timer + Submit */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '6px',
+            flexShrink: 0
+          }}>
+            {/* Timer */}
             <div style={{ 
               display: 'flex', 
-              flexDirection: 'column', 
+              flexDirection: 'column',
               alignItems: 'center',
-              padding: '8px 16px',
+              padding: '3px 6px',
               background: isFinished ? '#f6ffed' : 
                          isTimeCritical ? '#fff2f0' : 
                          isTimeWarning ? '#fff7e6' : '#e6f7ff',
-              borderRadius: '8px',
-              border: `2px solid ${getTimeColor()}`,
-              minWidth: '120px'
+              borderRadius: '4px',
+              border: `1px solid ${getTimeColor()}`,
+              minWidth: '50px'
             }}>
               <div style={{ 
-                fontSize: '20px', 
+                fontSize: '11px', 
                 fontWeight: 'bold', 
                 color: getTimeColor(),
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
+                lineHeight: '1'
               }}>
-                {isFinished ? <TrophyOutlined /> : <ClockCircleOutlined />}
-                {isFinished ? 'Hoàn thành' : formatTime(timeLeft)}
+                {isFinished ? 'DONE' : formatTime(timeLeft)}
               </div>
-              <Text 
-                style={{ 
-                  fontSize: '11px', 
+              {!isFinished && (
+                <div style={{
+                  fontSize: '8px',
                   color: getTimeColor(),
-                  fontWeight: 'bold',
-                  textTransform: 'uppercase'
-                }}
-              >
-                {isFinished ? 'Đã nộp bài' : 
-                 isTimeCritical ? 'Nguy hiểm!' : 
-                 isTimeWarning ? 'Cảnh báo!' : 'Thời gian'}
-              </Text>
+                  textTransform: 'uppercase',
+                  lineHeight: '1'
+                }}>
+                  {isTimeCritical ? '!!!' : isTimeWarning ? '!!' : 'time'}
+                </div>
+              )}
             </div>
 
+            {/* Submit button */}
             <Button
               type="primary"
-              size="large"
-              icon={<SaveOutlined />}
+              size="small"
               onClick={onSubmit}
               disabled={isFinished}
               style={{
-                height: '50px',
-                fontSize: '16px',
+                height: '32px',
+                fontSize: '11px',
                 fontWeight: 'bold',
-                minWidth: '120px',
+                minWidth: '50px',
                 background: isFinished ? '#52c41a' : undefined,
-                borderColor: isFinished ? '#52c41a' : undefined
+                borderColor: isFinished ? '#52c41a' : undefined,
+                padding: '0 8px'
               }}
             >
-              {isFinished ? '✅ Đã nộp' : '📤 Nộp bài'}
+              {isFinished ? '✅' : '📤'}
             </Button>
           </div>
-        </Col>
-      </Row>
+        </div>
+      ) : (
+        // Layout desktop: Full layout as before
+        <Row style={{ width: '100%' }} justify="space-between" align="middle">
+          <Col flex="auto">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div>
+                <Title level={4} style={{ margin: 0, color: '#1890ff' }}>
+                  🎯 Đề thi mã số {title}
+                </Title>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '8px' }}>
+                  <Space size="middle">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <CheckCircleOutlined style={{ color: '#52c41a', fontSize: '14px' }} />
+                      <Text style={{ fontSize: '14px', color: '#52c41a', fontWeight: 'bold' }}>
+                        Đã làm: {answeredCount}
+                      </Text>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <QuestionCircleOutlined style={{ color: '#d9d9d9', fontSize: '14px' }} />
+                      <Text style={{ fontSize: '14px', color: '#8c8c8c', fontWeight: 'bold' }}>
+                        Còn lại: {totalQuestions - answeredCount}
+                      </Text>
+                    </div>
+                    <Text style={{ fontSize: '13px', color: '#8c8c8c' }}>
+                      (Tổng: {totalQuestions} câu)
+                    </Text>
+                  </Space>
+                </div>
+              </div>
+            </div>
+          </Col>
+
+          <Col>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '24px'
+            }}>
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center',
+                padding: '8px 16px',
+                background: isFinished ? '#f6ffed' : 
+                           isTimeCritical ? '#fff2f0' : 
+                           isTimeWarning ? '#fff7e6' : '#e6f7ff',
+                borderRadius: '8px',
+                border: `2px solid ${getTimeColor()}`,
+                minWidth: '120px'
+              }}>
+                <div style={{ 
+                  fontSize: '20px', 
+                  fontWeight: 'bold', 
+                  color: getTimeColor(),
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  {isFinished ? <TrophyOutlined /> : <ClockCircleOutlined />}
+                  {isFinished ? 'Hoàn thành' : formatTime(timeLeft)}
+                </div>
+                <Text 
+                  style={{ 
+                    fontSize: '11px', 
+                    color: getTimeColor(),
+                    fontWeight: 'bold',
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  {isFinished ? 'Đã nộp bài' : 
+                   isTimeCritical ? 'Nguy hiểm!' : 
+                   isTimeWarning ? 'Cảnh báo!' : 'Thời gian'}
+                </Text>
+              </div>
+
+              <Button
+                type="primary"
+                size="large"
+                icon={<SaveOutlined />}
+                onClick={onSubmit}
+                disabled={isFinished}
+                style={{
+                  height: '50px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  minWidth: '120px',
+                  background: isFinished ? '#52c41a' : undefined,
+                  borderColor: isFinished ? '#52c41a' : undefined
+                }}
+              >
+                {isFinished ? '✅ Đã nộp' : '📤 Nộp bài'}
+              </Button>
+            </div>
+          </Col>
+        </Row>
+      )}
     </Header>
   );
 };

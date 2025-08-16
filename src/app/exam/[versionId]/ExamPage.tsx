@@ -1,34 +1,40 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Layout, Spin, Alert, Modal, Card, Button, App } from 'antd';
+import { Layout, Spin, Alert, Modal, Card, Button, App, notification, Drawer } from 'antd';
 import QuestionList from './components/QuestionList';
 import ExamHeader from './components/ExamHeader';
 import QuestionNavigation from './components/QuestionNavigation';
 import React from 'react';
+import { MenuOutlined } from '@ant-design/icons';
 
-const { Content, Sider } = Layout;
+const { Content } = Layout;
+
 // Khai báo các hằng số
-const EXAM_DURATION_SECONDS = 5400;
-const AUTO_SAVE_INTERVAL = 10000; // Auto-save mỗi 10 giây
 const STORAGE_KEY = 'exam_data_'; // Prefix cho localStorage key
+const AUTO_SAVE_INTERVAL = 10000; // 10 giây
 
 // Định nghĩa các kiểu dữ liệu
 interface Question {
-  question_id: string; // Đảm bảo tương thích với QuestionNavigation
-  id?: string; // Nếu vẫn cần trường id cho các component khác
+  question_id: string;
   question_type: string;
   question_content: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
-
-interface UserAnswers {
-  [questionId: string]: string | string[] | number; // Kiểu dữ liệu phù hợp với câu trả lời
+interface ExamDetail {
+  exam_id: string;
+  title: string;
+  description: string;
+  total_questions: number;
+  duration_minutes: number;
+  subject_name: string;
+  grade_name: string;
 }
-
+interface UserAnswers {
+  [questionId: string]: string | string[] | number;
+}
 type ExamStatus = 'not-started' | 'in-progress' | 'submitted' | 'time-up';
-
 interface SavedExamData {
   userAnswers: UserAnswers;
   timeLeft: number;
@@ -40,12 +46,14 @@ interface SavedExamData {
 
 interface ExamPageProps {
   versionId: string;
+  examDetail: ExamDetail;
   initialQuestions: Question[];
   initialError: string | null;
 }
 
 export default function ExamPage({
   versionId,
+  examDetail,
   initialQuestions,
   initialError,
 }: ExamPageProps) {
@@ -53,18 +61,83 @@ export default function ExamPage({
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(initialError);
 
-  const [timeLeft, setTimeLeft] = useState<number>(EXAM_DURATION_SECONDS);
+  const [timeLeft, setTimeLeft] = useState<number>(examDetail.duration_minutes * 60);
   const [examStatus, setExamStatus] = useState<ExamStatus>('not-started');
   const [isSubmitModalVisible, setIsSubmitModalVisible] = useState<boolean>(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
-  const [siderCollapsed, setSiderCollapsed] = useState<boolean>(false);
   const [userAnswers, setUserAnswers] = useState<UserAnswers>({});
   const [examStartTime, setExamStartTime] = useState<number | null>(null);
-  const [isRecovering, setIsRecovering] = useState<boolean>(false);
+  const [isRecovering, setIsRecovering] = useState<boolean>(true);
+  const [drawerVisible, setDrawerVisible] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
 
   const autoSaveIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const storageKey = `${STORAGE_KEY}${versionId}`;
-  const { message, notification, modal } = App.useApp();
+  const { message, modal } = App.useApp();
+
+  // Detect mobile screen
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Thêm một effect để xử lý trạng thái loading và error ban đầu từ props
+  useEffect(() => {
+    if (initialError) {
+      setError(initialError);
+      setLoading(false);
+    } else {
+      setQuestions(initialQuestions);
+      setLoading(false);
+      // Logic khôi phục được chuyển vào đây
+      const savedData = loadFromStorage();
+      if (savedData && savedData.examStatus !== 'submitted') {
+        modal.confirm({
+          title: '🔄 Khôi phục bài làm',
+          content: (
+            <div>
+              <p>Hệ thống phát hiện bài làm chưa hoàn thành từ lần trước:</p>
+              <ul style={{ paddingLeft: '20px', margin: '8px 0' }}>
+                <li>Đã trả lời: <strong>{Object.keys(savedData.userAnswers || {}).length}</strong> câu</li>
+                <li>Thời gian còn lại: <strong>{Math.floor(savedData.timeLeft / 60)} phút {savedData.timeLeft % 60} giây</strong></li>
+                <li>Lần lưu cuối: <strong>{new Date(savedData.lastSaved).toLocaleTimeString()}</strong></li>
+              </ul>
+              <p>Bạn có muốn tiếp tục bài làm này không?</p>
+            </div>
+          ),
+          okText: '✅ Tiếp tục làm bài',
+          cancelText: '🆕 Làm bài mới',
+          onOk: () => {
+            setUserAnswers(savedData.userAnswers || {});
+            setTimeLeft(savedData.timeLeft);
+            setExamStatus(savedData.examStatus || 'not-started');
+            setExamStartTime(savedData.examStartTime);
+            setCurrentQuestionIndex(savedData.currentQuestionIndex ?? 0);
+            setIsRecovering(false);
+            notification.success({
+              message: 'Khôi phục thành công!',
+              description: 'Bài làm của bạn đã được khôi phục từ lần truy cập trước.',
+            });
+          },
+          onCancel: () => {
+            clearStorage();
+            setIsRecovering(false);
+            notification.info({
+              message: 'Bắt đầu bài mới',
+              description: 'Dữ liệu cũ đã được xóa, bạn sẽ làm bài từ đầu.',
+            });
+          },
+        });
+      } else {
+        setIsRecovering(false);
+      }
+    }
+  }, [initialQuestions, initialError, versionId]);
 
   // ===== AUTO-SAVE FUNCTIONS =====
   const saveToStorage = useCallback(
@@ -113,15 +186,13 @@ export default function ExamPage({
   const saveToServer = useCallback(
     async (answers: UserAnswers) => {
       if (!answers || Object.keys(answers).length === 0) return;
-
       try {
         const response = await fetch(`/api/exam/${versionId}/save`, {
           method: 'POST',
           headers: {
-              'Content-Type': 'application/json',
-              // Thêm header này để bỏ qua cảnh báo của ngrok
-              'ngrok-skip-browser-warning': 'true', 
-            },
+            'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': 'true',
+          },
           body: JSON.stringify({
             answers: answers,
             timeLeft: timeLeft,
@@ -137,66 +208,11 @@ export default function ExamPage({
         }
       } catch (error) {
         console.error('Server save error:', error);
-        // Vẫn save local nếu server fail
         saveToStorage({ userAnswers: answers });
       }
     },
     [versionId, timeLeft, examStatus, saveToStorage]
   );
-
-  // ===== RECOVERY ON PAGE LOAD =====
-  useEffect(() => {
-    const savedData = loadFromStorage();
-    if (savedData && savedData.examStatus !== 'submitted') {
-      setIsRecovering(true);
-
-      // Use Modal.confirm directly instead of modal.confirm from App context
-      modal.confirm({
-        title: '🔄 Khôi phục bài làm',
-        content: (
-          <div>
-            <p>Hệ thống phát hiện bài làm chưa hoàn thành từ lần trước:</p>
-            <ul>
-              <li>
-                Đã trả lời: <strong>{Object.keys(savedData.userAnswers || {}).length}</strong> câu
-              </li>
-              <li>
-                Thời gian còn lại: <strong>{Math.floor(savedData.timeLeft / 60)} phút {savedData.timeLeft % 60} giây
-                </strong>
-              </li>
-              <li>
-                Lần lưu cuối: <strong>{new Date(savedData.lastSaved).toLocaleTimeString()}</strong>
-              </li>
-            </ul>
-            <p>Bạn có muốn tiếp tục bài làm này không?</p>
-          </div>
-        ),
-        okText: '✅ Tiếp tục làm bài',
-        cancelText: '🆕 Làm bài mới',
-        onOk: () => {
-          setUserAnswers(savedData.userAnswers || {});
-          setTimeLeft(savedData.timeLeft ?? EXAM_DURATION_SECONDS);
-          setExamStatus(savedData.examStatus || 'not-started');
-          setExamStartTime(savedData.examStartTime);
-          setCurrentQuestionIndex(savedData.currentQuestionIndex ?? 0);
-          setIsRecovering(false);
-
-          notification.success({
-            message: 'Khôi phục thành công!',
-            description: 'Bài làm của bạn đã được khôi phục từ lần truy cập trước.',
-          });
-        },
-        onCancel: () => {
-          clearStorage();
-          setIsRecovering(false);
-          notification.info({
-            message: 'Bắt đầu bài mới',
-            description: 'Dữ liệu cũ đã được xóa, bạn sẽ làm bài từ đầu.',
-          });
-        },
-      });
-    }
-  }, [loadFromStorage, clearStorage]);
 
   // ===== AUTO-SAVE TIMER =====
   useEffect(() => {
@@ -219,14 +235,11 @@ export default function ExamPage({
     (questionId: string, answer: string | string[] | number) => {
       setUserAnswers((prev) => {
         const newAnswers = { ...prev, [questionId]: answer };
-        // Debounced save - chỉ save sau 2 giây không có thay đổi
-        setTimeout(() => {
-          saveToStorage({ userAnswers: newAnswers });
-        }, 2000);
         return newAnswers;
       });
+      saveToStorage({ userAnswers });
     },
-    [saveToStorage]
+    [saveToStorage, userAnswers]
   );
 
   const handleStartExam = () => {
@@ -247,15 +260,12 @@ export default function ExamPage({
     setIsSubmitModalVisible(false);
     setExamStatus('submitted');
 
-    // Final save to server
     await saveToServer(userAnswers);
 
-    // Clear auto-save timer
     if (autoSaveIntervalRef.current) {
       clearInterval(autoSaveIntervalRef.current);
     }
 
-    // Clear local storage sau khi submit thành công
     clearStorage();
 
     notification.success({
@@ -267,17 +277,19 @@ export default function ExamPage({
   const handleQuestionNavigate = useCallback(
     (index: number) => {
       setCurrentQuestionIndex(index);
-      const questionElement = document.getElementById(`question-${index}`);
+      const questionElement = document.getElementById(`question-${questions[index].question_id}`);
       if (questionElement) {
         questionElement.scrollIntoView({
           behavior: 'smooth',
           block: 'start',
         });
       }
-      // Save navigation position
       saveToStorage({ currentQuestionIndex: index });
+      if (isMobile) {
+        setDrawerVisible(false);
+      }
     },
-    [saveToStorage]
+    [questions, saveToStorage, isMobile]
   );
 
   // ===== EXAM TIMER =====
@@ -286,7 +298,6 @@ export default function ExamPage({
       const timer = setInterval(() => {
         setTimeLeft((prev) => {
           const newTime = prev - 1;
-          // Save time every minute
           if (newTime % 60 === 0) {
             saveToStorage({ timeLeft: newTime });
           }
@@ -295,12 +306,10 @@ export default function ExamPage({
       }, 1000);
       return () => clearInterval(timer);
     }
-    if (timeLeft === 0 && examStatus === 'in-progress') {
+    if (timeLeft <= 0 && examStatus === 'in-progress') {
       setExamStatus('time-up');
-      // Auto-submit và clear storage
       saveToServer(userAnswers);
       clearStorage();
-      // Use Modal.warning directly
       Modal.warning({
         title: 'Hết giờ làm bài!',
         content: 'Bài làm của bạn đã được tự động nộp.',
@@ -310,13 +319,13 @@ export default function ExamPage({
 
   // ===== SCROLL TRACKING =====
   useEffect(() => {
-    if (examStatus !== 'in-progress') return;
+    if (examStatus !== 'in-progress' || !questions.length) return;
     const handleScroll = () => {
       const questionElements = questions
-        .map((_, index) => document.getElementById(`question-${index}`))
+        .map((q) => document.getElementById(`question-${q.question_id}`))
         .filter(Boolean) as HTMLElement[];
       let currentIndex = 0;
-      const scrollTop = window.scrollY + 200;
+      const scrollTop = window.scrollY + (isMobile ? 120 : 200);
       for (let i = 0; i < questionElements.length; i++) {
         if (questionElements[i].offsetTop <= scrollTop) {
           currentIndex = i;
@@ -326,7 +335,7 @@ export default function ExamPage({
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [questions, examStatus]);
+  }, [questions, examStatus, isMobile]);
 
   // ===== BEFORE UNLOAD WARNING =====
   useEffect(() => {
@@ -334,30 +343,38 @@ export default function ExamPage({
       if (examStatus === 'in-progress') {
         saveToStorage({});
         saveToServer(userAnswers);
-
         e.preventDefault();
-        e.returnValue = 'Bạn có chắc muốn rời khỏi trang? Bài làm sẽ được tự động lưu.';
-        return 'Bạn có chắc muốn rời khỏi trang? Bài làm sẽ được tự động lưu.';
+        e.returnValue = ''; // Required for Chrome
       }
     };
-
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [examStatus, saveToStorage, saveToServer, userAnswers]);
 
   if (error) {
     return (
-      <div style={{ padding: '50px', textAlign: 'center' }}>
+      <div style={{ 
+        padding: isMobile ? '16px' : '50px', 
+        textAlign: 'center',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
         <Alert message="Lỗi" description={error} type="error" showIcon />
       </div>
     );
   }
 
-  // Sửa lỗi: Spin 'tip' only work...
-  // Bọc Spin trong một div có kích thước cụ thể.
   if (isRecovering) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
+        padding: '20px'
+      }}>
         <Spin size="large" tip="Đang khôi phục bài làm...">
           <div style={{ minHeight: 200 }}></div>
         </Spin>
@@ -373,56 +390,86 @@ export default function ExamPage({
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            padding: '24px',
+            padding: isMobile ? '12px' : '24px',
           }}
         >
           <Card
             title={
-              <div style={{ textAlign: 'center', fontSize: '24px', fontWeight: 'bold' }}>
-                Đề thi mã số {versionId}
+              <div style={{ 
+                textAlign: 'center', 
+                fontSize: isMobile ? '18px' : '24px', 
+                fontWeight: 'bold',
+                lineHeight: 1.3
+              }}>
+                Đề thi {examDetail.title}
               </div>
             }
             style={{
               width: '100%',
-              maxWidth: '600px',
+              maxWidth: isMobile ? '100%' : '600px',
               textAlign: 'center',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              margin: isMobile ? '0' : 'auto'
             }}
-          >
-            <div style={{ padding: '40px 20px' }}>
-              <div style={{ marginBottom: '30px' }}>
-                <h3 style={{ color: '#1890ff', marginBottom: '16px' }}>🎯 Chào mừng bạn đến với bài thi!</h3>
-                <p style={{ fontSize: '16px', color: '#666', lineHeight: '1.6' }}>
-                  Thời gian làm bài: <strong>{Math.floor(EXAM_DURATION_SECONDS / 60)} phút</strong>
-                </p>
-                <p style={{ fontSize: '16px', color: '#666', lineHeight: '1.6' }}>
-                  Tổng số câu hỏi: <strong>{questions.length} câu</strong>
-                </p>
-              </div>
 
+          >
+            <div>
+              <div style={{ marginBottom: isMobile ? '20px' : '30px' }}>
+                <h3 style={{ 
+                  color: '#1890ff', 
+                  marginBottom: '12px',
+                  fontSize: isMobile ? '16px' : '18px',
+                  lineHeight: 1.4
+                }}>
+                  🎯 Chào mừng bạn đến với bài thi môn {examDetail.subject_name}, {examDetail.grade_name}!
+                </h3>
+                <div style={{ 
+                  fontSize: isMobile ? '14px' : '16px', 
+                  color: '#666', 
+                  lineHeight: '1.5',
+                  textAlign: 'left',
+                  background: '#fafafa',
+                  padding: isMobile ? '12px' : '16px',
+                  borderRadius: '6px',
+                  margin: isMobile ? '12px 0' : '16px 0'
+                }}>
+                  <p style={{ margin: '0 0 8px 0' }}>
+                    ⏱️ Thời gian làm bài: <strong>{examDetail.duration_minutes} phút</strong>
+                  </p>
+                  <p style={{ margin: '0' }}>
+                    📝 Tổng số câu hỏi: <strong>{examDetail.total_questions} câu</strong>
+                  </p>
+                </div>
+              </div>
               <div
                 style={{
                   background: '#f6ffed',
                   border: '1px solid #b7eb8f',
                   borderRadius: '6px',
-                  padding: '16px',
-                  marginBottom: '30px',
+                  padding: isMobile ? '12px' : '16px',
+                  marginBottom: isMobile ? '20px' : '30px',
+                  textAlign: 'left'
                 }}
               >
-                <p style={{ margin: 0, color: '#389e0d' }}>
+                <p style={{ 
+                  margin: 0, 
+                  color: '#389e0d',
+                  fontSize: isMobile ? '13px' : '14px',
+                  lineHeight: 1.4
+                }}>
                   💡 <strong>Lưu ý:</strong> Bài làm sẽ được tự động lưu mỗi 10 giây. Nếu thoát giữa chừng, bạn có thể tiếp tục làm bài sau.
                 </p>
               </div>
-
               <Button
                 type="primary"
-                size="large"
+                size={isMobile ? 'middle' : 'large'}
                 onClick={handleStartExam}
                 style={{
-                  height: '50px',
-                  fontSize: '18px',
+                  height: isMobile ? '44px' : '50px',
+                  fontSize: isMobile ? '16px' : '18px',
                   fontWeight: 'bold',
-                  minWidth: '200px',
+                  width: isMobile ? '100%' : 'auto',
+                  minWidth: isMobile ? 'auto' : '200px',
                 }}
               >
                 🚀 Bắt đầu làm bài
@@ -434,60 +481,108 @@ export default function ExamPage({
     );
   }
 
-  // Container để tạo khoảng trống cho fixed header
+  const headerHeight = isMobile ? 60 : 80;
+
   return (
     <Layout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
       <ExamHeader
-        versionId={versionId}
+        title={examDetail.title}
         timeLeft={timeLeft}
         onSubmit={handleSubmitExam}
         examStatus={examStatus}
         totalQuestions={questions.length}
         answeredCount={Object.keys(userAnswers).length}
+        // style={{
+        //   height: headerHeight,
+        //   padding: isMobile ? '0 12px' : '0 24px',
+        //   fontSize: isMobile ? '14px' : '16px'
+        // }}
       />
       
-      <Layout style={{ marginTop: '80px' }}>
-        <Sider
-          width={280}
+      {/* Mobile Navigation Button */}
+      {isMobile && examStatus === 'in-progress' && (
+        <Button
+          type="primary"
+          icon={<MenuOutlined />}
+          onClick={() => setDrawerVisible(true)}
           style={{
-            background: '#fff',
-            borderRight: '1px solid #f0f0f0',
-            height: 'calc(100vh - 80px)', // Adjust height based on header height
             position: 'fixed',
-            top: '80px', // Adjust top based on header height
-            overflow: 'auto',
+            bottom: '20px',
+            right: '20px',
+            zIndex: 1000,
+            width: '48px',
+            height: '48px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
           }}
-          collapsible
-          collapsed={siderCollapsed}
-          onCollapse={(collapsed) => setSiderCollapsed(collapsed)}
-          collapsedWidth={60}
-        >
-          <QuestionNavigation
-            questions={questions}
-            userAnswers={userAnswers}
-            currentQuestionIndex={currentQuestionIndex}
-            onQuestionClick={handleQuestionNavigate}
-            collapsed={siderCollapsed}
-            examStatus={examStatus}
-          />
-        </Sider>
+        />
+      )}
+      
+      <Layout style={{ marginTop: `${headerHeight}px` }}>
+        {/* Desktop Sidebar */}
+        {!isMobile && (
+          <div
+            style={{
+              width: '240px',
+              background: '#fff',
+              borderRight: '1px solid #f0f0f0',
+              height: `calc(100vh - ${headerHeight}px)`,
+              position: 'fixed',
+              top: `${headerHeight}px`,
+              overflow: 'auto',
+              zIndex: 100
+            }}
+          >
+            <QuestionNavigation
+              questions={questions}
+              userAnswers={userAnswers}
+              currentQuestionIndex={currentQuestionIndex}
+              onQuestionClick={handleQuestionNavigate}
+              collapsed={false}
+              examStatus={examStatus}
+            />
+          </div>
+        )}
 
+        {/* Mobile Drawer */}
+        {isMobile && (
+          <Drawer
+            title="Danh sách câu hỏi"
+            placement="right"
+            onClose={() => setDrawerVisible(false)}
+            open={drawerVisible}
+            width="280px"
+          >
+            <QuestionNavigation
+              questions={questions}
+              userAnswers={userAnswers}
+              currentQuestionIndex={currentQuestionIndex}
+              onQuestionClick={handleQuestionNavigate}
+              collapsed={false}
+              examStatus={examStatus}
+            />
+          </Drawer>
+        )}
+        
         <Content
           style={{
-            padding: '24px 32px',
-            minHeight: 'calc(100vh - 80px)', // Adjust height based on header height
-            overflowY: 'auto', // Ensure Content can scroll independently
-            marginLeft: siderCollapsed ? '60px' : '280px',
-            transition: 'margin-left 0.2s',
+            padding: isMobile ? '12px 8px' : '24px 32px',
+            minHeight: `calc(100vh - ${headerHeight}px)`,
+            overflowY: 'auto',
+            marginLeft: isMobile ? 0 : '240px',
+            paddingBottom: isMobile ? '80px' : '24px' // Extra space for mobile button
           }}
         >
           <div
             style={{
-              maxWidth: '900px',
+              maxWidth: isMobile ? '100%' : '900px',
               margin: '0 auto',
               background: '#fff',
-              borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              borderRadius: isMobile ? '4px' : '8px',
+              boxShadow: isMobile ? '0 1px 4px rgba(0,0,0,0.1)' : '0 2px 8px rgba(0,0,0,0.1)',
               overflow: 'hidden',
             }}
           >
@@ -497,15 +592,22 @@ export default function ExamPage({
               onAnswerChange={handleAnswerChange}
               examStatus={examStatus}
               currentQuestionIndex={currentQuestionIndex}
+              // isMobile={isMobile}
             />
           </div>
         </Content>
       </Layout>
-
+      
       <Modal
         title={
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#1890ff' }}>🎯 Xác nhận nộp bài</div>
+            <div style={{ 
+              fontSize: isMobile ? '18px' : '20px', 
+              fontWeight: 'bold', 
+              color: '#1890ff' 
+            }}>
+              🎯 Xác nhận nộp bài
+            </div>
           </div>
         }
         open={isSubmitModalVisible}
@@ -513,32 +615,46 @@ export default function ExamPage({
         onCancel={() => setIsSubmitModalVisible(false)}
         okText="✅ Nộp bài"
         cancelText="❌ Hủy"
-        width={500}
+        width={isMobile ? '90%' : 500}
         centered
+        style={isMobile ? { top: 20 } : {}}
       >
-        <div style={{ padding: '20px 0' }}>
+        <div style={{ padding: isMobile ? '12px 0' : '20px 0' }}>
           <div
             style={{
               background: '#f6ffed',
               border: '1px solid #b7eb8f',
               borderRadius: '6px',
-              padding: '16px',
-              marginBottom: '20px',
+              padding: isMobile ? '12px' : '16px',
+              marginBottom: isMobile ? '16px' : '20px',
             }}
           >
-            <p style={{ margin: 0, fontSize: '16px' }}>
+            <p style={{ 
+              margin: 0, 
+              fontSize: isMobile ? '14px' : '16px' 
+            }}>
               <strong>Thống kê bài làm:</strong>
             </p>
-            <p style={{ margin: '8px 0 0 0' }}>
+            <p style={{ 
+              margin: '6px 0 0 0',
+              fontSize: isMobile ? '13px' : '14px'
+            }}>
               • Đã trả lời: <strong>{Object.keys(userAnswers).length}/{questions.length}</strong> câu
             </p>
-            <p style={{ margin: '4px 0 0 0' }}>
-              • Thời gian còn lại: <strong>{Math.floor(timeLeft / 60)} phút {timeLeft % 60} giây
-              </strong>
+            <p style={{ 
+              margin: '4px 0 0 0',
+              fontSize: isMobile ? '13px' : '14px'
+            }}>
+              • Thời gian còn lại: <strong>{Math.floor(timeLeft / 60)} phút {timeLeft % 60} giây</strong>
             </p>
           </div>
-
-          <p style={{ fontSize: '16px', textAlign: 'center', color: '#666' }}>
+          <p style={{ 
+            fontSize: isMobile ? '14px' : '16px', 
+            textAlign: 'center', 
+            color: '#666',
+            lineHeight: 1.4,
+            margin: 0
+          }}>
             ⚠️ Bạn có chắc chắn muốn nộp bài không?
             <br />
             <small>Sau khi nộp bài, bạn sẽ không thể chỉnh sửa được nữa.</small>
