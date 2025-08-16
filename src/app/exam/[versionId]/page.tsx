@@ -1,7 +1,7 @@
 // src/app/exam/[versionId]/page.tsx
 import { notFound } from 'next/navigation';
-import { api_backend } from '../../../../utils/api';
-import ExamPage from './examPage'; // Import component đã tách ra
+import { api_backend } from '../../../utils/api';
+import ExamPage from './ExamPage'; // Import component đã tách ra
 
 // Định nghĩa kiểu dữ liệu cho props của component
 type Params = { versionId: string };
