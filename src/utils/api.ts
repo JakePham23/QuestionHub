@@ -6,7 +6,7 @@
       API_BACKEND: 'http://localhost:3001/api'
     },
     production: {
-      API_BACKEND: `${process.env.API_BACKEND}/api` // Example production URL
+    API_BACKEND: `${process.env.NEXT_PUBLIC_API_BACKEND}/api`
     }
   };
 
