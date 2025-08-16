@@ -1,10 +1,16 @@
 // src/app/exam/[versionId]/page.tsx
 import ExamPage from './ExamPage';
 import { api_backend } from '../../../utils/api';
-import { Alert } from 'antd'; // Thêm import Alert
+import { Alert } from 'antd'; 
+
+// 
 
 // Định nghĩa kiểu dữ liệu cho props của component
 type Params = { versionId: string };
+// Correctly define the PageProps type as Next.js expects
+interface PageProps {
+  params: Params;
+}
 
 // Định nghĩa kiểu dữ liệu cho câu hỏi
 interface Question {
@@ -58,6 +64,7 @@ async function fetchData(versionId: string) {
   }
 }
 
+// Sửa kiểu dữ liệu của props để khớp với PageProps
 export default async function ExamDataFetcher({ params }: { params: Params }) {
   const { versionId } = params;
 
@@ -70,8 +77,7 @@ export default async function ExamDataFetcher({ params }: { params: Params }) {
     questions = data.questions;
     examDetail = data.examDetail;
 
-
-  }         // eslint-disable-next-line @typescript-eslint/no-explicit-any 
+  } // eslint-disable-next-line @typescript-eslint/no-explicit-any 
   catch (err: any) {
     error = err.message;
   }
