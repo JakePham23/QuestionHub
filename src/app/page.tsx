@@ -165,14 +165,14 @@ export default function Home() {
     return Array.from(subjectMap.values());
   }, [curriculumData, selectedGradeId]);
 
-  const chapters = useMemo(() => {
-    if (!selectedGradeId || !selectedSubjectId) return [];
-    return curriculumData
-      .filter(
-        item => item.grade_id === selectedGradeId 
-              && item.subject_id === selectedSubjectId 
-              && item.chapter_id !== null
-      )
+const chapters = useMemo(() => {
+  if (!selectedGradeId || !selectedSubjectId) return [];
+  return curriculumData
+    .filter(
+      item => item.grade_id === selectedGradeId 
+            && item.subject_id === selectedSubjectId 
+            && item.chapter_id !== null
+    )
       .map(item => ({
         chapter_id: item.chapter_id as string | number,
         chapter_name: item.chapter_name ?? '',
@@ -181,6 +181,10 @@ export default function Home() {
       }));
   }, [curriculumData, selectedGradeId, selectedSubjectId]);
 
+  // console.log(grades)
+  // console.log(subjects)
+  // console.log(chapters)
+  
   const handleGradeSelect = (gradeId: string | number) => {
     setSelectedGradeId(Number(gradeId));
     setSelectedSubjectId(null);

@@ -15,22 +15,32 @@ const STORAGE_KEY = 'exam_data_'; // Prefix cho localStorage key
 const AUTO_SAVE_INTERVAL = 10000; // 10 giây
 
 // Định nghĩa các kiểu dữ liệu
+interface Answer {
+  answer_id: string;
+  is_correct?: boolean; // Thêm trường này nếu có
+  choice_text: string; // Đã đổi lại thành choice_text
+}
 interface Question {
   question_id: string;
   question_type: string;
-  question_content: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
+  question_text: string; // Đã đổi lại từ question_content
+  answers?: Answer[]; // Giữ nguyên tên answers
+  answer_choices?: Answer[]; // Thêm lại nếu cần
+  question_url?: string; // Thêm trường URL ảnh
 }
+
 interface ExamDetail {
   exam_id: string;
   title: string;
+  school_year: string;
   description: string;
   total_questions: number;
   duration_minutes: number;
   subject_name: string;
   grade_name: string;
+  source_name: string,
 }
+
 interface UserAnswers {
   [questionId: string]: string | string[] | number;
 }
@@ -87,57 +97,57 @@ export default function ExamPage({
   }, []);
 
   // Thêm một effect để xử lý trạng thái loading và error ban đầu từ props
-  useEffect(() => {
-    if (initialError) {
-      setError(initialError);
-      setLoading(false);
-    } else {
-      setQuestions(initialQuestions);
-      setLoading(false);
-      // Logic khôi phục được chuyển vào đây
-      const savedData = loadFromStorage();
-      if (savedData && savedData.examStatus !== 'submitted') {
-        modal.confirm({
-          title: '🔄 Khôi phục bài làm',
-          content: (
-            <div>
-              <p>Hệ thống phát hiện bài làm chưa hoàn thành từ lần trước:</p>
-              <ul style={{ paddingLeft: '20px', margin: '8px 0' }}>
-                <li>Đã trả lời: <strong>{Object.keys(savedData.userAnswers || {}).length}</strong> câu</li>
-                <li>Thời gian còn lại: <strong>{Math.floor(savedData.timeLeft / 60)} phút {savedData.timeLeft % 60} giây</strong></li>
-                <li>Lần lưu cuối: <strong>{new Date(savedData.lastSaved).toLocaleTimeString()}</strong></li>
-              </ul>
-              <p>Bạn có muốn tiếp tục bài làm này không?</p>
-            </div>
-          ),
-          okText: '✅ Tiếp tục làm bài',
-          cancelText: '🆕 Làm bài mới',
-          onOk: () => {
-            setUserAnswers(savedData.userAnswers || {});
-            setTimeLeft(savedData.timeLeft);
-            setExamStatus(savedData.examStatus || 'not-started');
-            setExamStartTime(savedData.examStartTime);
-            setCurrentQuestionIndex(savedData.currentQuestionIndex ?? 0);
-            setIsRecovering(false);
-            notification.success({
-              message: 'Khôi phục thành công!',
-              description: 'Bài làm của bạn đã được khôi phục từ lần truy cập trước.',
-            });
-          },
-          onCancel: () => {
-            clearStorage();
-            setIsRecovering(false);
-            notification.info({
-              message: 'Bắt đầu bài mới',
-              description: 'Dữ liệu cũ đã được xóa, bạn sẽ làm bài từ đầu.',
-            });
-          },
-        });
-      } else {
-        setIsRecovering(false);
-      }
-    }
-  }, [initialQuestions, initialError, versionId]);
+  // useEffect(() => {
+  //   if (initialError) {
+  //     setError(initialError);
+  //     setLoading(false);
+  //   } else {
+  //     setQuestions(initialQuestions);
+  //     setLoading(false);
+  //     // Logic khôi phục được chuyển vào đây
+  //     const savedData = loadFromStorage();
+  //     if (savedData && savedData.examStatus !== 'submitted') {
+  //       modal.confirm({
+  //         title: '🔄 Khôi phục bài làm',
+  //         content: (
+  //           <div>
+  //             <p>Hệ thống phát hiện bài làm chưa hoàn thành từ lần trước:</p>
+  //             <ul style={{ paddingLeft: '20px', margin: '8px 0' }}>
+  //               <li>Đã trả lời: <strong>{Object.keys(savedData.userAnswers || {}).length}</strong> câu</li>
+  //               <li>Thời gian còn lại: <strong>{Math.floor(savedData.timeLeft / 60)} phút {savedData.timeLeft % 60} giây</strong></li>
+  //               <li>Lần lưu cuối: <strong>{new Date(savedData.lastSaved).toLocaleTimeString()}</strong></li>
+  //             </ul>
+  //             <p>Bạn có muốn tiếp tục bài làm này không?</p>
+  //           </div>
+  //         ),
+  //         okText: '✅ Tiếp tục làm bài',
+  //         cancelText: '🆕 Làm bài mới',
+  //         onOk: () => {
+  //           setUserAnswers(savedData.userAnswers || {});
+  //           setTimeLeft(savedData.timeLeft);
+  //           setExamStatus(savedData.examStatus || 'not-started');
+  //           setExamStartTime(savedData.examStartTime);
+  //           setCurrentQuestionIndex(savedData.currentQuestionIndex ?? 0);
+  //           setIsRecovering(false);
+  //           notification.success({
+  //             message: 'Khôi phục thành công!',
+  //             description: 'Bài làm của bạn đã được khôi phục từ lần truy cập trước.',
+  //           });
+  //         },
+  //         onCancel: () => {
+  //           clearStorage();
+  //           setIsRecovering(false);
+  //           notification.info({
+  //             message: 'Bắt đầu bài mới',
+  //             description: 'Dữ liệu cũ đã được xóa, bạn sẽ làm bài từ đầu.',
+  //           });
+  //         },
+  //       });
+  //     } else {
+  //       setIsRecovering(false);
+  //     }
+  //   }
+  // }, [initialQuestions, initialError, versionId]);
 
   // ===== AUTO-SAVE FUNCTIONS =====
   const saveToStorage = useCallback(
@@ -366,21 +376,21 @@ export default function ExamPage({
     );
   }
 
-  if (isRecovering) {
-    return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '100vh',
-        padding: '20px'
-      }}>
-        <Spin size="large" tip="Đang khôi phục bài làm...">
-          <div style={{ minHeight: 200 }}></div>
-        </Spin>
-      </div>
-    );
-  }
+  // if (isRecovering) {
+  //   return (
+  //     <div style={{ 
+  //       display: 'flex', 
+  //       justifyContent: 'center', 
+  //       alignItems: 'center', 
+  //       minHeight: '100vh',
+  //       padding: '20px'
+  //     }}>
+  //       <Spin size="large" tip="Đang khôi phục bài làm...">
+  //         <div style={{ minHeight: 200 }}></div>
+  //       </Spin>
+  //     </div>
+  //   );
+  // }
 
   if (examStatus === 'not-started') {
     return (
@@ -401,7 +411,7 @@ export default function ExamPage({
                 fontWeight: 'bold',
                 lineHeight: 1.3
               }}>
-                Đề thi {examDetail.title}
+                {examDetail.title} - {examDetail.school_year}
               </div>
             }
             style={{

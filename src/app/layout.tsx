@@ -10,7 +10,7 @@ import { App as AntdApp } from 'antd';
 
 const RootLayout = ({ children }: React.PropsWithChildren) => (
   <html lang="en" suppressHydrationWarning={true} data-qb-installed="true">
-    <body>
+    <body __processed_368e657a-16e3-48df-9ebc-88333f160057__="true">
       <AntdRegistry>
         <AntdConfigProvider>
            <AntdApp>

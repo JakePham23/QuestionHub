@@ -16,14 +16,17 @@ const { useBreakpoint } = Grid;
 // Định nghĩa các kiểu dữ liệu
 interface Answer {
   answer_id: string;
-  answer_content: string;
+  is_correct?: boolean; // Thêm trường này nếu có
+  choice_text: string; // Đã đổi lại thành choice_text
 }
 
 interface Question {
   question_id: string;
-  question_type: 'trac_nghiem' | 'dung_sai' | 'dien_dap_an' | 'tu_luan' | string;
-  question_content: string;
-  answers?: Answer[];
+  question_type: string;
+  question_text: string; // Đã đổi lại từ question_content
+  answers?: Answer[]; // Giữ nguyên tên answers
+  answer_choices?: Answer[]; // Thêm lại nếu cần
+  question_url?: string; // Thêm trường URL ảnh
 }
 
 type UserAnswer = string | string[] | boolean | number | undefined | null;
@@ -85,7 +88,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
             style={{ width: '100%' }}
           >
             <Space direction="vertical" style={{ width: '100%' }} size={isMobile ? 'small' : 'middle'}>
-              {(question.answers || []).map((answer) => (
+              {(question.answer_choices || []).map((answer) => (
                 <Radio 
                   key={answer.answer_id} 
                   value={answer.answer_id}
@@ -104,7 +107,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                     marginLeft: isMobile ? '6px' : '8px', 
                     lineHeight: isMobile ? '1.4' : '1.6' 
                   }}>
-                    <LatexRenderer text={answer.answer_content} isMobile={isMobile} />
+                    <LatexRenderer text={answer.choice_text} isMobile={isMobile} />
                   </div>
                 </Radio>
               ))}
@@ -280,13 +283,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
         transition: 'all 0.3s ease',
         background: isCurrent ? '#fafbff' : '#fff'
       }}
-      headStyle={{
-        padding: isMobile ? '8px 12px' : '16px 24px',
-        borderBottom: '1px solid #f0f0f0'
-      }}
-      bodyStyle={{
-        padding: isMobile ? '12px' : '24px'
-      }}
+
     >
       {/* Question Content */}
       <div style={{ 
@@ -298,8 +295,27 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
         border: '1px solid #f0f0f0',
         lineHeight: isMobile ? '1.4' : '1.6'
       }}>
-        <LatexRenderer text={question.question_content} isMobile={isMobile} />
+        <LatexRenderer text={question.question_text} isMobile={isMobile} />
       </div>
+      
+      {/* Question Image */}
+      {question.question_url && (
+        <div style={{ 
+          textAlign: 'center', 
+          margin: isMobile ? '16px 0' : '24px 0' 
+        }}>
+          <img 
+            src={question.question_url} 
+            alt="Hình ảnh minh họa" 
+            style={{ 
+              maxWidth: '80%', 
+              height: 'auto', 
+              borderRadius: '8px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }} 
+          />
+        </div>
+      )}
 
       {/* Answer Section */}
       {renderQuestionType()}

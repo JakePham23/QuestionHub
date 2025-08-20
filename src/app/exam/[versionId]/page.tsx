@@ -10,34 +10,44 @@ type Params = Promise<{ versionId: string}>
 interface Question {
   question_id: string;
   question_type: string;
-  question_content: string;
-  // Thêm các trường khác nếu có
+  question_text: string; // Đã đổi lại từ question_content
+  answers?: Answer[]; // Giữ nguyên tên answers
+  answer_choices?: Answer[]; // Thêm lại nếu cần
+  question_url?: string; // Thêm trường URL ảnh
+}
+
+interface Answer {
+  answer_id: string;
+  is_correct?: boolean; // Thêm trường này nếu có
+  choice_text: string; // Đã đổi lại thành choice_text
 }
 
 // Định nghĩa kiểu dữ liệu cho chi tiết đề thi
 interface ExamDetail {
   exam_id: string;
   title: string;
+  school_year: string;
   description: string;
   total_questions: number;
   duration_minutes: number;
   subject_name: string;
   grade_name: string;
+  source_name: string,
 }
 
 // Hàm lấy dữ liệu từ hai API
-async function fetchData(versionId: string) {
-  if (!versionId) {
+async function fetchData(examId: string) {
+  if (!examId) {
     throw new Error('ID đề thi không tồn tại');
   }
 
   try {
     const [res1, res2] = await Promise.all([
-      fetch(`${api_backend}/versions/${versionId}`, {
+      fetch(`${api_backend}/exams/${examId}`, {
         headers: { 'ngrok-skip-browser-warning': 'true' },
         cache: 'no-store',
       }),
-      fetch(`${api_backend}/exams/${versionId}`, {
+      fetch(`${api_backend}/exams/${examId}/questions`, {
         headers: { 'ngrok-skip-browser-warning': 'true' },
         cache: 'no-store',
       }),
@@ -47,8 +57,8 @@ async function fetchData(versionId: string) {
       throw new Error('Không thể tải đề thi từ server');
     }
 
-    const questions: Question[] = await res1.json();
-    const examDetail: ExamDetail = await res2.json();
+    const questions: Question[] = await res2.json();
+    const examDetail: ExamDetail = await res1.json();
 
     return { questions, examDetail };
 

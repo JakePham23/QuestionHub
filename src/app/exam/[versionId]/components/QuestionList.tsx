@@ -5,15 +5,19 @@ import { VerticalAlignTopOutlined } from '@ant-design/icons';
 import React from 'react';
 
 const { useBreakpoint } = Grid;
-
+interface Answer {
+  answer_id: string;
+  is_correct?: boolean; // Thêm trường này nếu có
+  choice_text: string; // Đã đổi lại thành choice_text
+}
 // Định nghĩa các kiểu dữ liệu
 interface Question {
   question_id: string;
-  question_type: 'trac_nghiem' | 'dung_sai' | 'dien_dap_an' | 'tu_luan' | string;
-  question_content: string;
-  // Thêm các trường khác nếu cần
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
+  question_type: string;
+  question_text: string; // Đã đổi lại từ question_content
+  answers?: Answer[]; // Giữ nguyên tên answers
+  answer_choices?: Answer[]; // Thêm lại nếu cần
+  question_url?: string; // Thêm trường URL ảnh
 }
 
 interface UserAnswers {

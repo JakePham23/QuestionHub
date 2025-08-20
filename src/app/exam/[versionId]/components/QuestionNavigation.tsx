@@ -198,7 +198,6 @@ const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
           showInfo={false}
           style={{ marginBottom: '8px' }}
         />
-        
         <div style={{ 
           display: 'flex', 
           justifyContent: 'space-between',

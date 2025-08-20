@@ -3,7 +3,7 @@
 
   const config = {
     development: {
-      API_BACKEND: 'http://localhost:3001/api'
+      API_BACKEND: 'https://462cb74ef07d.ngrok-free.app/api'
     },
     production: {
     API_BACKEND: `${process.env.NEXT_PUBLIC_API_BACKEND}/api`
