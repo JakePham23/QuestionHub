@@ -13,7 +13,7 @@ export const metadata = {
     description: 'Ngân hàng đề thi trắc nghiệm Toán - Vật Lý - Hóa khổng lồ, bám sát chương trình học cho mọi cấp lớp với công nghệ AI tiên tiến.',
     images: [
       {
-        url: 'https://www.questionhub.edu.vn/preview.png', // The public folder is the root URL
+        url: './public/preview.png', // The public folder is the root URL
         alt: 'Question Hub Education',
       },
     ],
