@@ -10,7 +10,6 @@ import HeroSection from "../components/HeroSection";
 import CurriculumSelection from "../components/CurriculumSelection";
 import ExamResults from "../components/ExamResults";
 import "@ant-design/v5-patch-for-react-19";
-
 const { Content } = Layout;
 
 // Định nghĩa các kiểu dữ liệu

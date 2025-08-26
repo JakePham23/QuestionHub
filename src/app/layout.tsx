@@ -11,6 +11,20 @@ import LayoutWrapper from '../components/layout/LayoutWrapper';
 import { App as AntdApp } from 'antd';
 import { NotificationProvider } from '../providers/NotificationProvider';
 
+export const metadata = {
+  title: 'Question Hub Education',
+  description: 'Ngân hàng đề thi trắc nghiệm Toán - Vật Lý - Hóa khổng lồ, bám sát chương trình học cho mọi cấp lớp với công nghệ AI tiên tiến.',
+  openGraph: {
+    title: 'Question Hub Education',
+    description: 'Ngân hàng đề thi trắc nghiệm Toán - Vật Lý - Hóa khổng lồ, bám sát chương trình học cho mọi cấp lớp với công nghệ AI tiên tiến.',
+    images: [
+      {
+        url: 'https://www.questionhub.edu.vn/public/preview.png', // URL tuyệt đối
+        alt: 'Question Hub Education',
+      },
+    ],
+  },
+};
 const RootLayout = ({ children }: React.PropsWithChildren) => {
   const modalContainerRef = useRef<HTMLDivElement>(null);
 
