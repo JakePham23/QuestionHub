@@ -34,6 +34,7 @@ interface QuestionListProps {
   onAnswerChange: (questionId: string, answer: any) => void;
   examStatus: ExamStatus;
   currentQuestionIndex: number;
+  isMobile?: boolean; // Thêm prop isMobile
 }
 
 const QuestionList: React.FC<QuestionListProps> = ({ 
@@ -41,10 +42,12 @@ const QuestionList: React.FC<QuestionListProps> = ({
   userAnswers, 
   onAnswerChange, 
   examStatus,
-  currentQuestionIndex 
+  currentQuestionIndex, 
+  isMobile // Sửa ở đây, nhận isMobile từ props
 }) => {
-  const screens = useBreakpoint();
-  const isMobile = screens.xs || screens.sm;
+  // Bỏ đi đoạn code tính toán lại isMobile
+  // const screens = useBreakpoint();
+  // const isMobile = screens.xs || screens.sm;
 
   if (questions.length === 0) {
     return (

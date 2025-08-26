@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Layout, Spin, Alert, Modal, Card, Button, App, notification, Drawer } from 'antd';
+import { Layout, Alert, Modal, Card, Button, Drawer } from 'antd';
 import QuestionList from './components/QuestionList';
 import ExamHeader from './components/ExamHeader';
 import QuestionNavigation from './components/QuestionNavigation';
 import React from 'react';
 import { MenuOutlined } from '@ant-design/icons';
+import { useNotify } from '@/providers/NotificationProvider';
 
 const { Content } = Layout;
 
@@ -83,7 +84,7 @@ export default function ExamPage({
 
   const autoSaveIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const storageKey = `${STORAGE_KEY}${versionId}`;
-  const { message, modal } = App.useApp();
+  const { notification, modal } = useNotify(); // ✅ gọn gàng
 
   // Detect mobile screen
   useEffect(() => {
@@ -97,57 +98,57 @@ export default function ExamPage({
   }, []);
 
   // Thêm một effect để xử lý trạng thái loading và error ban đầu từ props
-  // useEffect(() => {
-  //   if (initialError) {
-  //     setError(initialError);
-  //     setLoading(false);
-  //   } else {
-  //     setQuestions(initialQuestions);
-  //     setLoading(false);
-  //     // Logic khôi phục được chuyển vào đây
-  //     const savedData = loadFromStorage();
-  //     if (savedData && savedData.examStatus !== 'submitted') {
-  //       modal.confirm({
-  //         title: '🔄 Khôi phục bài làm',
-  //         content: (
-  //           <div>
-  //             <p>Hệ thống phát hiện bài làm chưa hoàn thành từ lần trước:</p>
-  //             <ul style={{ paddingLeft: '20px', margin: '8px 0' }}>
-  //               <li>Đã trả lời: <strong>{Object.keys(savedData.userAnswers || {}).length}</strong> câu</li>
-  //               <li>Thời gian còn lại: <strong>{Math.floor(savedData.timeLeft / 60)} phút {savedData.timeLeft % 60} giây</strong></li>
-  //               <li>Lần lưu cuối: <strong>{new Date(savedData.lastSaved).toLocaleTimeString()}</strong></li>
-  //             </ul>
-  //             <p>Bạn có muốn tiếp tục bài làm này không?</p>
-  //           </div>
-  //         ),
-  //         okText: '✅ Tiếp tục làm bài',
-  //         cancelText: '🆕 Làm bài mới',
-  //         onOk: () => {
-  //           setUserAnswers(savedData.userAnswers || {});
-  //           setTimeLeft(savedData.timeLeft);
-  //           setExamStatus(savedData.examStatus || 'not-started');
-  //           setExamStartTime(savedData.examStartTime);
-  //           setCurrentQuestionIndex(savedData.currentQuestionIndex ?? 0);
-  //           setIsRecovering(false);
-  //           notification.success({
-  //             message: 'Khôi phục thành công!',
-  //             description: 'Bài làm của bạn đã được khôi phục từ lần truy cập trước.',
-  //           });
-  //         },
-  //         onCancel: () => {
-  //           clearStorage();
-  //           setIsRecovering(false);
-  //           notification.info({
-  //             message: 'Bắt đầu bài mới',
-  //             description: 'Dữ liệu cũ đã được xóa, bạn sẽ làm bài từ đầu.',
-  //           });
-  //         },
-  //       });
-  //     } else {
-  //       setIsRecovering(false);
-  //     }
-  //   }
-  // }, [initialQuestions, initialError, versionId]);
+  useEffect(() => {
+    if (initialError) {
+      setError(initialError);
+      setLoading(false);
+    } else {
+      setQuestions(initialQuestions);
+      setLoading(false);
+      // Logic khôi phục được chuyển vào đây
+      const savedData = loadFromStorage();
+      if (savedData && savedData.examStatus !== 'submitted') {
+        modal.confirm({
+          title: '🔄 Khôi phục bài làm',
+          content: (
+            <div>
+              <p>Hệ thống phát hiện bài làm chưa hoàn thành từ lần trước:</p>
+              <ul style={{ paddingLeft: '20px', margin: '8px 0' }}>
+                <li>Đã trả lời: <strong>{Object.keys(savedData.userAnswers || {}).length}</strong> câu</li>
+                <li>Thời gian còn lại: <strong>{Math.floor(savedData.timeLeft / 60)} phút {savedData.timeLeft % 60} giây</strong></li>
+                <li>Lần lưu cuối: <strong>{new Date(savedData.lastSaved).toLocaleTimeString()}</strong></li>
+              </ul>
+              <p>Bạn có muốn tiếp tục bài làm này không?</p>
+            </div>
+          ),
+          okText: '✅ Tiếp tục làm bài',
+          cancelText: '🆕 Làm bài mới',
+          onOk: () => {
+            setUserAnswers(savedData.userAnswers || {});
+            setTimeLeft(savedData.timeLeft);
+            setExamStatus(savedData.examStatus || 'not-started');
+            setExamStartTime(savedData.examStartTime);
+            setCurrentQuestionIndex(savedData.currentQuestionIndex ?? 0);
+            setIsRecovering(false);
+            notification.success({ // Gọi đúng cách
+              message: 'Khôi phục thành công!',
+              description: 'Bài làm của bạn đã được khôi phục từ lần truy cập trước.',
+            });
+          },
+          onCancel: () => {
+            clearStorage();
+            setIsRecovering(false);
+            notification.info({ // Gọi đúng cách
+              message: 'Bắt đầu bài mới',
+              description: 'Dữ liệu cũ đã được xóa, bạn sẽ làm bài từ đầu.',
+            });
+          },
+        });
+      } else {
+        setIsRecovering(false);
+      }
+    }
+  }, [initialQuestions, initialError, versionId]);
 
   // ===== AUTO-SAVE FUNCTIONS =====
   const saveToStorage = useCallback(
@@ -354,7 +355,6 @@ export default function ExamPage({
         saveToStorage({});
         saveToServer(userAnswers);
         e.preventDefault();
-        e.returnValue = ''; // Required for Chrome
       }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -502,11 +502,6 @@ export default function ExamPage({
         examStatus={examStatus}
         totalQuestions={questions.length}
         answeredCount={Object.keys(userAnswers).length}
-        // style={{
-        //   height: headerHeight,
-        //   padding: isMobile ? '0 12px' : '0 24px',
-        //   fontSize: isMobile ? '14px' : '16px'
-        // }}
       />
       
       {/* Mobile Navigation Button */}
@@ -602,7 +597,7 @@ export default function ExamPage({
               onAnswerChange={handleAnswerChange}
               examStatus={examStatus}
               currentQuestionIndex={currentQuestionIndex}
-              // isMobile={isMobile}
+              isMobile={isMobile}
             />
           </div>
         </Content>

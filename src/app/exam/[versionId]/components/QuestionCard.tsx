@@ -9,6 +9,7 @@ import {
   EyeOutlined 
 } from '@ant-design/icons';
 import React from 'react';
+import {api} from '../../../../utils/api'; // Đã sửa tên biến import
 
 const { Paragraph, Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -16,17 +17,18 @@ const { useBreakpoint } = Grid;
 // Định nghĩa các kiểu dữ liệu
 interface Answer {
   answer_id: string;
-  is_correct?: boolean; // Thêm trường này nếu có
-  choice_text: string; // Đã đổi lại thành choice_text
+  is_correct?: boolean;
+  choice_text: string;
+  choice_media_url?: string; // Đã thêm trường URL ảnh cho đáp án
 }
 
 interface Question {
   question_id: string;
   question_type: string;
-  question_text: string; // Đã đổi lại từ question_content
-  answers?: Answer[]; // Giữ nguyên tên answers
-  answer_choices?: Answer[]; // Thêm lại nếu cần
-  question_url?: string; // Thêm trường URL ảnh
+  question_text: string;
+  answers?: Answer[];
+  answer_choices?: Answer[];
+  question_url?: string;
 }
 
 type UserAnswer = string | string[] | boolean | number | undefined | null;
@@ -106,8 +108,19 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   <div style={{ 
                     marginLeft: isMobile ? '6px' : '8px', 
                     lineHeight: isMobile ? '1.4' : '1.6' 
+                    
                   }}>
-                    <LatexRenderer text={answer.choice_text} isMobile={isMobile} />
+                    {answer.choice_media_url ? (
+                      // Render hình ảnh nếu có URL
+                      <img 
+                        src={api + answer.choice_media_url} 
+                        alt="Đáp án minh họa" 
+                        style={{ maxWidth: '100%', height: 'auto', maxHeight: '200px' }}
+                      />
+                    ) : (
+                      // Render văn bản nếu không có URL hình ảnh
+                      <LatexRenderer text={answer.choice_text} isMobile={isMobile} />
+                    )}
                   </div>
                 </Radio>
               ))}
@@ -305,10 +318,10 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
           margin: isMobile ? '16px 0' : '24px 0' 
         }}>
           <img 
-            src={question.question_url} 
+            src={api + question.question_url} 
             alt="Hình ảnh minh họa" 
             style={{ 
-              maxWidth: '80%', 
+              maxWidth: '100%', 
               height: 'auto', 
               borderRadius: '8px',
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)'

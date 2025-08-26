@@ -8,7 +8,7 @@ const { Footer } = Layout;
 const AppFooter: React.FC = () => {
   return (
     <Footer style={{ textAlign: 'center' }}>
-      Question Hub ©{new Date().getFullYear()} - Nơi hội tụ tri thức, chinh phục mọi kỳ thi.
+      Question Hub ©2025- Nơi hội tụ tri thức, chinh phục mọi kỳ thi.
       <br />
       <Space>
         Theo dõi trên{''}
