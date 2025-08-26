@@ -1,15 +1,9 @@
 // src/app/layout.tsx
-'use client';
 
-import { AntdRegistry } from '@ant-design/nextjs-registry';
-import React, { useRef } from 'react';
+import React from 'react';
 import './globals.css';
-import AntdConfigProvider from '../providers/AntdConfigProvider';
-import ErrorBoundary from './ErrorBoundary';
 import 'katex/dist/katex.min.css';
-import LayoutWrapper from '../components/layout/LayoutWrapper';
-import { App as AntdApp } from 'antd';
-import { NotificationProvider } from '../providers/NotificationProvider';
+import RootClientLayout from './RootClientLayout'; // Import the client wrapper
 
 export const metadata = {
   title: 'Question Hub Education',
@@ -19,34 +13,19 @@ export const metadata = {
     description: 'Ngân hàng đề thi trắc nghiệm Toán - Vật Lý - Hóa khổng lồ, bám sát chương trình học cho mọi cấp lớp với công nghệ AI tiên tiến.',
     images: [
       {
-        url: 'https://www.questionhub.edu.vn/public/preview.png', // URL tuyệt đối
+        url: 'https://www.questionhub.edu.vn/preview.png', // The public folder is the root URL
         alt: 'Question Hub Education',
       },
     ],
   },
 };
-const RootLayout = ({ children }: React.PropsWithChildren) => {
-  const modalContainerRef = useRef<HTMLDivElement>(null);
 
+export default function RootLayout({ children }: React.PropsWithChildren) {
   return (
     <html lang="en">
       <body suppressHydrationWarning={true}>
-        <AntdRegistry>
-          <AntdConfigProvider getPopupContainer={() => modalContainerRef.current ?? document.body}>
-            <AntdApp>
-              <NotificationProvider>
-                <ErrorBoundary>
-                  <LayoutWrapper>
-                    <div ref={modalContainerRef}>{children}</div>
-                  </LayoutWrapper>
-                </ErrorBoundary>
-              </NotificationProvider>
-            </AntdApp>
-          </AntdConfigProvider>
-        </AntdRegistry>
+        <RootClientLayout>{children}</RootClientLayout>
       </body>
     </html>
   );
-};
-
-export default RootLayout;
+}
