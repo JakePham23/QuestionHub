@@ -4,6 +4,7 @@ import authService from "@/services/auth.service";
 
 declare global {
   interface Window {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     google: any;
   }
 }
@@ -24,6 +25,7 @@ const useGoogleAuth = () => {
   const [isPrompting, setIsPrompting] = useState<boolean>(false);
 
   // Handle Google credential response
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleCredentialResponse = async (response: any) => {
     console.log("🔍 DEBUG: handleCredentialResponse called with:", response);
 
@@ -56,6 +58,7 @@ const useGoogleAuth = () => {
       } else {
         setError(result.message || "Sign-in failed");
       }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error("❌ DEBUG: Error in handleCredentialResponse:", err);
       console.error("❌ DEBUG: Error response:", err.response?.data);
@@ -143,6 +146,7 @@ const useGoogleAuth = () => {
       console.log("✅ DEBUG: Prompting Google Sign-In...");
 
       try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         window.google.accounts.id.prompt((notification: any) => {
           if (notification.isNotDisplayed()) {
             console.error(

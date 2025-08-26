@@ -24,6 +24,7 @@ import useGoogleAuth from "@/components/hook/GoogleSignIn";
 interface LoginModalProps {
   open: boolean;
   onCancel: () => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onLoginSuccess?: (user: any) => void;
   onSwitchToSignup?: () => void;
 }
@@ -99,6 +100,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
       } else {
         message.error(response.data.message || "Đăng nhập thất bại!");
       }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       notification.error({
         message: "Đăng nhập thất bại",

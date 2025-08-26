@@ -51,8 +51,8 @@ const SignupModal: React.FC<SignupModalProps> = ({
       console.error("Signup failed", error);
       notification.error({
         message: "Đăng ký thất bại",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         description:
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (error as any)?.response?.data?.message ||
           "Đã có lỗi xảy ra. Vui lòng thử lại.",
       });
