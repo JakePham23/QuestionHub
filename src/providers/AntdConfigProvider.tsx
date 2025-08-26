@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { ConfigProvider, theme } from 'antd';
-import { useEffect, useState, useMemo } from 'react';
-import { ThemeMode, ThemeModeContext } from './ThemeModeContext';
+import { ConfigProvider, theme } from "antd";
+import { useEffect, useState, useMemo } from "react";
+import { ThemeMode, ThemeModeContext } from "./ThemeModeContext";
 
 export const LOCAL_STORAGE_KEY = 'themeMode';
 
@@ -30,7 +30,7 @@ const AntdConfigProvider = ({ children, getPopupContainer }: Props) => {
 
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_KEY, mode);
-    document.documentElement.setAttribute('data-theme', mode);
+    document.documentElement.setAttribute("data-theme", mode);
   }, [mode]);
 
   const THEME_CONFIG = useMemo(() => {
@@ -51,3 +51,4 @@ const AntdConfigProvider = ({ children, getPopupContainer }: Props) => {
 };
 
 export default AntdConfigProvider;
+
