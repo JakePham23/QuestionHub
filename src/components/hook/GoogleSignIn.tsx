@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { message } from "antd";
+// import { message } from "antd";
 import authService from "@/services/auth.service";
+import { useNotify } from '@/providers/NotificationProvider';
+
 
 declare global {
   interface Window {
@@ -23,7 +25,7 @@ const useGoogleAuth = () => {
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isPrompting, setIsPrompting] = useState<boolean>(false);
-
+  const { message } = useNotify();
   // Handle Google credential response
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleCredentialResponse = async (response: any) => {
