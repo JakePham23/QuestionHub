@@ -78,6 +78,7 @@ const authService = {
       );
       console.log("✅ DEBUG: Backend response received:", response.data);
       return response.data;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("❌ DEBUG: Backend request failed:", error);
       console.error("❌ DEBUG: Error response:", error.response?.data);
