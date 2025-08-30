@@ -43,8 +43,8 @@ const navItems: NavItem[] = [
   { key: "/", label: <Link href="/">Trang chủ</Link> },
   { key: "/about", label: <Link href="/about">Giới thiệu</Link> },
   { key: "/contact", label: <Link href="/contact">Liên hệ</Link> },
-  { key: "/blog", label: <Link href="/blog">Blog</Link> },
-  { key: "/dashboard", label: <Link href="/dashboard">Dashboard</Link> },
+  { key: "/blog", label: <Link href="/blog">Bản tin học tập</Link> },
+  { key: "/exercise", label: <Link href="/exercise">Luyện tập</Link> },
 ];
 
 export default function AppHeader(): JSX.Element {
