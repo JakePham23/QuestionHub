@@ -1,29 +1,18 @@
-// src/app/exam/[versionId]/components/QuestionNavigation.tsx
 'use client'
-import { Button, Tooltip, Typography, Divider, Progress, Grid } from 'antd';
+import { Button, Tooltip, Typography, Progress, Grid } from 'antd';
 import { 
   CheckCircleOutlined, 
   QuestionCircleOutlined,
-  EyeOutlined,
   BarsOutlined,
   FireOutlined
 } from '@ant-design/icons';
 import React from 'react';
 
+// Import types từ file trung tâm
+import { Question, UserAnswers, ExamStatus } from '@/types/exam.type';
+
 const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
-
-// Định nghĩa các kiểu dữ liệu
-interface Question {
-  question_id: string;
-}
-
-interface UserAnswers {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [questionId: string]: any;
-}
-
-type ExamStatus = 'not-started' | 'in-progress' | 'submitted' | 'time-up';
 
 interface QuestionNavigationProps {
   questions: Question[];
@@ -59,7 +48,6 @@ const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
     }
   };
 
-  // Tính toán thống kê
   const answeredCount = questions.filter(q => userAnswers.hasOwnProperty(q.question_id)).length;
   const progressPercent = Math.round((answeredCount / questions.length) * 100);
 
@@ -148,7 +136,7 @@ const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
     );
   }
 
-  const gridColumns = isMobile ? 5 : 6; // Mobile: 5 cột, Desktop: 6 cột
+  const gridColumns = isMobile ? 5 : 6;
 
   return (
     <div style={{ 
@@ -157,7 +145,6 @@ const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
       overflowY: 'auto',
       background: 'linear-gradient(135deg, #f6f8fb 0%, #e9ecef 100%)'
     }}>
-      {/* Header với Progress */}
       <div style={{ 
         marginBottom: '20px',
         background: '#fff',
@@ -209,7 +196,6 @@ const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
         </div>
       </div>
 
-      {/* Legend */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-around',
@@ -249,7 +235,6 @@ const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
         </div>
       </div>
 
-      {/* Question Grid */}
       <div style={{ 
         display: 'grid', 
         gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
@@ -323,7 +308,6 @@ const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
         })}
       </div>
 
-      {/* Summary Card */}
       {!isFinished && (
         <div style={{ 
           background: 'linear-gradient(135deg, #f6ffed, #d9f7be)',

@@ -1,40 +1,21 @@
-// src/app/exam/[versionId]/components/QuestionList.tsx
 import QuestionCard from './QuestionCard';
 import { Empty, FloatButton, Grid } from 'antd';
 import { VerticalAlignTopOutlined } from '@ant-design/icons';
 import React from 'react';
 
+// Import types từ file trung tâm
+import { Question, UserAnswers, ExamStatus } from '@/types/exam.type';
+
 const { useBreakpoint } = Grid;
-interface Answer {
-  answer_id: string;
-  is_correct?: boolean; // Thêm trường này nếu có
-  choice_text: string; // Đã đổi lại thành choice_text
-}
-// Định nghĩa các kiểu dữ liệu
-interface Question {
-  question_id: string;
-  question_type: string;
-  question_text: string; // Đã đổi lại từ question_content
-  answers?: Answer[]; // Giữ nguyên tên answers
-  answer_choices?: Answer[]; // Thêm lại nếu cần
-  question_url?: string; // Thêm trường URL ảnh
-}
-
-interface UserAnswers {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [questionId: string]: any;
-}
-
-type ExamStatus = 'not-started' | 'in-progress' | 'submitted' | 'time-up';
 
 interface QuestionListProps {
   questions: Question[];
   userAnswers: UserAnswers;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onAnswerChange: (questionId: string, answer: any) => void;
   examStatus: ExamStatus;
   currentQuestionIndex: number;
-  isMobile?: boolean; // Thêm prop isMobile
+  isMobile?: boolean;
 }
 
 const QuestionList: React.FC<QuestionListProps> = ({ 
@@ -43,12 +24,8 @@ const QuestionList: React.FC<QuestionListProps> = ({
   onAnswerChange, 
   examStatus,
   currentQuestionIndex, 
-  isMobile // Sửa ở đây, nhận isMobile từ props
+  isMobile
 }) => {
-  // Bỏ đi đoạn code tính toán lại isMobile
-  // const screens = useBreakpoint();
-  // const isMobile = screens.xs || screens.sm;
-
   if (questions.length === 0) {
     return (
       <div style={{ 
@@ -69,15 +46,15 @@ const QuestionList: React.FC<QuestionListProps> = ({
     <div style={{ position: 'relative' }}>
       <div style={{ 
         padding: isMobile ? '12px 8px' : '24px',
-        paddingBottom: isMobile ? '60px' : '24px' // Extra space on mobile for floating elements
+        paddingBottom: isMobile ? '60px' : '24px'
       }}>
         {questions.map((q, index) => (
           <div 
             key={q.question_id} 
-            id={`question-${q.question_id}`} // Use question_id instead of index for better targeting
+            id={`question-${q.question_id}`}
             style={{ 
               marginBottom: index === questions.length - 1 ? 0 : (isMobile ? '20px' : '32px'),
-              scrollMarginTop: isMobile ? '60px' : '80px' // Offset for sticky header
+              scrollMarginTop: isMobile ? '60px' : '80px'
             }}
           >
             <QuestionCard 
@@ -93,11 +70,10 @@ const QuestionList: React.FC<QuestionListProps> = ({
         ))}
       </div>
 
-      {/* Back to top button - positioned differently on mobile */}
       <FloatButton.BackTop 
         style={{ 
           right: isMobile ? '16px' : '30px',
-          bottom: isMobile ? '80px' : '30px' // Higher on mobile to avoid conflicts
+          bottom: isMobile ? '80px' : '30px'
         }}
         target={() => (document.querySelector('.ant-layout-content') as HTMLElement) || window}
         visibilityHeight={isMobile ? 300 : 400}

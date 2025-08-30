@@ -9,51 +9,21 @@ import React from 'react';
 import { MenuOutlined } from '@ant-design/icons';
 import { useNotify } from '@/providers/NotificationProvider';
 
+// Import all necessary types from the centralized file
+import {
+  Answer,
+  Question,
+  ExamDetail,
+  UserAnswers,
+  ExamStatus,
+  SavedExamData,
+} from '@/types/exam.type';
+
 const { Content } = Layout;
 
 // Khai báo các hằng số
-const STORAGE_KEY = 'exam_data_'; // Prefix cho localStorage key
-const AUTO_SAVE_INTERVAL = 10000; // 10 giây
-
-// Định nghĩa các kiểu dữ liệu
-interface Answer {
-  answer_id: string;
-  is_correct?: boolean; // Thêm trường này nếu có
-  choice_text: string; // Đã đổi lại thành choice_text
-}
-interface Question {
-  question_id: string;
-  question_type: string;
-  question_text: string; // Đã đổi lại từ question_content
-  answers?: Answer[]; // Giữ nguyên tên answers
-  answer_choices?: Answer[]; // Thêm lại nếu cần
-  question_url?: string; // Thêm trường URL ảnh
-}
-
-interface ExamDetail {
-  exam_id: string;
-  title: string;
-  school_year: string;
-  description: string;
-  total_questions: number;
-  duration_minutes: number;
-  subject_name: string;
-  grade_name: string;
-  source_name: string,
-}
-
-interface UserAnswers {
-  [questionId: string]: string | string[] | number;
-}
-type ExamStatus = 'not-started' | 'in-progress' | 'submitted' | 'time-up';
-interface SavedExamData {
-  userAnswers: UserAnswers;
-  timeLeft: number;
-  examStatus: ExamStatus;
-  examStartTime: number | null;
-  currentQuestionIndex: number;
-  lastSaved: number;
-}
+const STORAGE_KEY = 'exam_data_';
+const AUTO_SAVE_INTERVAL = 10000;
 
 interface ExamPageProps {
   versionId: string;
@@ -68,6 +38,7 @@ export default function ExamPage({
   initialQuestions,
   initialError,
 }: ExamPageProps) {
+  // ... (rest of the component logic remains the same)
   const [questions, setQuestions] = useState<Question[]>(initialQuestions);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(initialError);
@@ -84,7 +55,7 @@ export default function ExamPage({
 
   const autoSaveIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const storageKey = `${STORAGE_KEY}${versionId}`;
-  const { notification, modal } = useNotify(); // ✅ gọn gàng
+  const { notification, modal } = useNotify();
 
   // Detect mobile screen
   useEffect(() => {
@@ -130,7 +101,7 @@ export default function ExamPage({
             setExamStartTime(savedData.examStartTime);
             setCurrentQuestionIndex(savedData.currentQuestionIndex ?? 0);
             setIsRecovering(false);
-            notification.success({ // Gọi đúng cách
+            notification.success({
               message: 'Khôi phục thành công!',
               description: 'Bài làm của bạn đã được khôi phục từ lần truy cập trước.',
             });
@@ -138,7 +109,7 @@ export default function ExamPage({
           onCancel: () => {
             clearStorage();
             setIsRecovering(false);
-            notification.info({ // Gọi đúng cách
+            notification.info({
               message: 'Bắt đầu bài mới',
               description: 'Dữ liệu cũ đã được xóa, bạn sẽ làm bài từ đầu.',
             });
@@ -148,7 +119,7 @@ export default function ExamPage({
         setIsRecovering(false);
       }
     }
-  }, [initialQuestions, initialError, versionId]);
+  }, [initialQuestions, initialError, versionId, modal, notification]);
 
   // ===== AUTO-SAVE FUNCTIONS =====
   const saveToStorage = useCallback(
@@ -376,22 +347,6 @@ export default function ExamPage({
     );
   }
 
-  // if (isRecovering) {
-  //   return (
-  //     <div style={{ 
-  //       display: 'flex', 
-  //       justifyContent: 'center', 
-  //       alignItems: 'center', 
-  //       minHeight: '100vh',
-  //       padding: '20px'
-  //     }}>
-  //       <Spin size="large" tip="Đang khôi phục bài làm...">
-  //         <div style={{ minHeight: 200 }}></div>
-  //       </Spin>
-  //     </div>
-  //   );
-  // }
-
   if (examStatus === 'not-started') {
     return (
       <Layout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
@@ -421,7 +376,6 @@ export default function ExamPage({
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
               margin: isMobile ? '0' : 'auto'
             }}
-
           >
             <div>
               <div style={{ marginBottom: isMobile ? '20px' : '30px' }}>
@@ -578,7 +532,7 @@ export default function ExamPage({
             minHeight: `calc(100vh - ${headerHeight}px)`,
             overflowY: 'auto',
             marginLeft: isMobile ? 0 : '240px',
-            paddingBottom: isMobile ? '80px' : '24px' // Extra space for mobile button
+            paddingBottom: isMobile ? '80px' : '24px'
           }}
         >
           <div

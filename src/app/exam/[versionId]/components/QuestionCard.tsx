@@ -13,26 +13,7 @@ import {api} from '../../../../utils/api'; // Đã sửa tên biến import
 
 const { Paragraph, Text } = Typography;
 const { useBreakpoint } = Grid;
-
-// Định nghĩa các kiểu dữ liệu
-interface Answer {
-  answer_id: string;
-  is_correct?: boolean;
-  choice_text: string;
-  choice_media_url?: string; // Đã thêm trường URL ảnh cho đáp án
-}
-
-interface Question {
-  question_id: string;
-  question_type: string;
-  question_text: string;
-  answers?: Answer[];
-  answer_choices?: Answer[];
-  question_url?: string;
-}
-
-type UserAnswer = string | string[] | boolean | number | undefined | null;
-type ExamStatus = 'not-started' | 'in-progress' | 'submitted' | 'time-up';
+import { Answer, Question, UserAnswer, ExamStatus} from '../../../../types/exam.type'
 
 interface QuestionCardProps {
   question: Question;

@@ -1,4 +1,3 @@
-// src/app/exam/[versionId]/components/ExamHeader.tsx
 'use client'
 import { Layout, Button, Typography, Space, Row, Col, Grid } from 'antd';
 import { 
@@ -11,12 +10,12 @@ import {
 } from '@ant-design/icons';
 import React from 'react';
 
+// Import types từ file trung tâm
+import { ExamStatus } from '@/types/exam.type';
+
 const { Header } = Layout;
 const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
-
-// Định nghĩa các kiểu dữ liệu
-type ExamStatus = 'not-started' | 'in-progress' | 'submitted' | 'time-up';
 
 interface ExamHeaderProps {
   title: string;
@@ -44,8 +43,8 @@ const ExamHeader: React.FC<ExamHeaderProps> = ({
   onShowNavigation
 }) => {
   const screens = useBreakpoint();
-  const isMobile = screens.xs || screens.sm; // Mở rộng cho tablet nhỏ
-  const isVerySmall = screens.xs; // Chỉ điện thoại rất nhỏ
+  const isMobile = screens.xs || screens.sm;
+  const isVerySmall = screens.xs;
   
   const isFinished = examStatus === 'submitted' || examStatus === 'time-up';
   const isTimeWarning = timeLeft <= 300 && !isFinished;
@@ -70,21 +69,19 @@ const ExamHeader: React.FC<ExamHeaderProps> = ({
         left: 0,
         right: 0,
         zIndex: 1000,
-        height: isMobile ? '60px' : '80px', // Mobile optimized height
+        height: isMobile ? '60px' : '80px',
         lineHeight: 'normal',
         display: 'flex',
         alignItems: 'center'
       }}
     >
       {isMobile ? (
-        // Layout mobile: Compact single row
         <div style={{ 
           width: '100%',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          {/* Left side: Menu + Title + Stats */}
           <div style={{ 
             display: 'flex', 
             alignItems: 'center', 
@@ -121,7 +118,6 @@ const ExamHeader: React.FC<ExamHeaderProps> = ({
                 🎯 {title}
               </Title>
               
-              {/* Question stats underneath title */}
               <div style={{ 
                 display: 'flex', 
                 alignItems: 'center',
@@ -143,14 +139,12 @@ const ExamHeader: React.FC<ExamHeaderProps> = ({
             </div>
           </div>
 
-          {/* Right side: Timer + Submit */}
           <div style={{ 
             display: 'flex', 
             alignItems: 'center', 
             gap: '6px',
             flexShrink: 0
           }}>
-            {/* Timer */}
             <div style={{ 
               display: 'flex', 
               flexDirection: 'column',
@@ -183,7 +177,6 @@ const ExamHeader: React.FC<ExamHeaderProps> = ({
               )}
             </div>
 
-            {/* Submit button */}
             <Button
               type="primary"
               size="small"
@@ -204,7 +197,6 @@ const ExamHeader: React.FC<ExamHeaderProps> = ({
           </div>
         </div>
       ) : (
-        // Layout desktop: Full layout as before
         <Row style={{ width: '100%' }} justify="space-between" align="middle">
           <Col flex="auto">
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>

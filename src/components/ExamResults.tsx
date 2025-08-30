@@ -1,24 +1,17 @@
-// src/components/ExamResults.tsx
 import { Typography, Row, Col, Card, Button, Spin, Alert, Empty, Tag, Space } from 'antd';
 import { PlayCircleOutlined, ClockCircleOutlined, FileTextOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import React from 'react';
 
-const { Title, Paragraph, Text } = Typography;
+// Import các kiểu dữ liệu từ file type trung tâm
+import { ExamItem } from '@/types/data.type';
 
-// Định nghĩa các kiểu dữ liệu
-interface Exam {
-  exam_id: string;
-  title: string;
-  description: string;
-  total_questions: number;
-  duration_minutes: number;
-}
+const { Title, Paragraph, Text } = Typography;
 
 interface ExamResultsProps {
   examLoading: boolean;
   examError: string | null;
-  exams: Exam[];
+  exams: ExamItem[];
   selectedGradeId: string | number | null;
   selectedSubjectId: string | number | null;
 }
@@ -32,7 +25,6 @@ const ExamResults: React.FC<ExamResultsProps> = ({
 }) => {
   const hasSelectedAnyFilter = selectedGradeId || selectedSubjectId;
 
-  // Nội dung của thông báo Empty
   const emptyDescription = hasSelectedAnyFilter
     ? (
         <div style={{ textAlign: 'center', color: '#8c8c8c' }}>

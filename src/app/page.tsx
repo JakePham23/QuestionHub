@@ -3,42 +3,27 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Layout } from "antd";
-import { api_backend } from "../utils/api";
 
-// Import các component con đã tạo
+// Import types and services
+import {
+  CurriculumItem,
+  GradeItem,
+  SubjectItem,
+  ExamItem,
+  ChapterItem,
+} from "../types/data.type";
+import {
+  fetchCurriculumData,
+  fetchExams,
+} from "../services/data.service";
+
+// Import components
 import HeroSection from "../components/HeroSection";
 import CurriculumSelection from "../components/CurriculumSelection";
 import ExamResults from "../components/ExamResults";
 import "@ant-design/v5-patch-for-react-19";
+
 const { Content } = Layout;
-
-// Định nghĩa các kiểu dữ liệu
-interface CurriculumItem {
-  grade_id: number;
-  grade_name: string;
-  subject_id: number;
-  subject_name: string;
-  chapter_id: number | null;
-  chapter_name: string | null;
-}
-
-interface GradeItem {
-  id: number;
-  name: string;
-}
-
-interface SubjectItem {
-  id: number;
-  name: string;
-}
-
-interface ExamItem {
-  exam_id: string;
-  title: string;
-  description: string;
-  total_questions: number;
-  duration_minutes: number;
-}
 
 export default function Home() {
   // =================================================================
@@ -60,91 +45,41 @@ export default function Home() {
   );
 
   // =================================================================
-  // DATA FETCHING
+  // DATA FETCHING with Services
   // =================================================================
   useEffect(() => {
-    const fetchData = async () => {
+    const getData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${api_backend}/data_info`, {
-          headers: {
-            "Content-Type": "application/json",
-            // Thêm header này để bỏ qua cảnh báo của ngrok
-            "ngrok-skip-browser-warning": "true",
-          },
-        });
-        console.log(api_backend);
-        if (!response.ok) {
-          throw new Error("Không thể kết nối tới server.");
-        }
-        const data: CurriculumItem[] = await response.json();
+        const data = await fetchCurriculumData();
         setCurriculumData(data);
         setError(null);
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("An unexpected error occurred.");
-        }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (err: any) {
+        setError(err.message);
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
+    getData();
   }, []);
 
   useEffect(() => {
-    const fetchExams = async () => {
-      // Chỉ return nếu cả gradeId và subjectId đều chưa được chọn
-      if (!selectedGradeId && !selectedSubjectId) {
-        setExams([]);
-        return;
-      }
-
+    const getExams = async () => {
+      setExamLoading(true);
+      setExamError(null);
       try {
-        setExamLoading(true);
-        setExamError(null);
-
-        // Tạo query string với các tham số đã chọn
-        const params = new URLSearchParams();
-        if (selectedGradeId) {
-          params.append("gradeId", String(selectedGradeId));
-        }
-        if (selectedSubjectId) {
-          params.append("subjectId", String(selectedSubjectId));
-        }
-        const queryString = params.toString();
-
-        // Xây dựng URL với query string
-        const url = `${api_backend}/exams?${queryString}`;
-
-        const response = await fetch(url, {
-          headers: {
-            "ngrok-skip-browser-warning": "true",
-          },
-        });
-
-        if (!response.ok) {
-          // const errorText = await response.json();
-          throw new Error(
-            "Đề thi loại này chưa được cập nhật. Vui lòng liên hệ Admin hoặc chờ Admin cập nhật thêm nhé!"
-          );
-        }
-
-        const data: ExamItem[] = await response.json();
+        const data = await fetchExams(selectedGradeId, selectedSubjectId);
         setExams(data);
-      } catch (err) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (err: any) {
         setExams([]);
-        if (err instanceof Error) {
-          setExamError(err.message);
-        } else {
-          setExamError("An unexpected error occurred.");
-        }
+        setExamError(err.message);
       } finally {
         setExamLoading(false);
       }
     };
-    fetchExams();
+    getExams();
   }, [selectedGradeId, selectedSubjectId]);
 
   // =================================================================
@@ -172,26 +107,23 @@ export default function Home() {
     return Array.from(subjectMap.values());
   }, [curriculumData, selectedGradeId]);
 
-const chapters = useMemo(() => {
-  if (!selectedGradeId || !selectedSubjectId) return [];
-  return curriculumData
-    .filter(
-      item => item.grade_id === selectedGradeId 
-            && item.subject_id === selectedSubjectId 
-            && item.chapter_id !== null
-    )
-      .map(item => ({
-        chapter_id: item.chapter_id as string | number,
+  const chapters: ChapterItem[] = useMemo(() => {
+    if (!selectedGradeId || !selectedSubjectId) return [];
+    return curriculumData
+      .filter(
+        (item) =>
+          item.grade_id === selectedGradeId &&
+          item.subject_id === selectedSubjectId &&
+          item.chapter_id !== null
+      )
+      .map((item) => ({
+        chapter_id: item.chapter_id as number,
         chapter_name: item.chapter_name ?? "",
         grade_id: item.grade_id,
         subject_id: item.subject_id,
       }));
   }, [curriculumData, selectedGradeId, selectedSubjectId]);
 
-  // console.log(grades)
-  // console.log(subjects)
-  // console.log(chapters)
-  
   const handleGradeSelect = (gradeId: string | number) => {
     setSelectedGradeId(Number(gradeId));
     setSelectedSubjectId(null);
