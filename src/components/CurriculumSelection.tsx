@@ -1,4 +1,4 @@
-import { Typography, Row, Col, Select, Space, Spin, Alert, Button, Card, Grid } from 'antd';
+import { Typography, Row, Col, Select, Space, Spin, Alert, Button, Card } from 'antd';
 import { BookOutlined, CodeOutlined, ExperimentOutlined } from '@ant-design/icons';
 import React from 'react';
 
@@ -7,7 +7,6 @@ import { GradeItem, SubjectItem, ChapterItem } from '@/types/data.type';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
-const { useBreakpoint } = Grid;
 
 interface CurriculumSelectionProps {
   loading: boolean;
@@ -44,38 +43,17 @@ const CurriculumSelection: React.FC<CurriculumSelectionProps> = ({
   handleSubjectSelect,
   setSelectedChapterId,
 }) => {
-  const screens = useBreakpoint();
-  const isMobile = screens.xs || screens.sm;
-
   return (
     <div 
       id="selection" 
       className="curriculum-selection"
-      style={{
-        minHeight: '100vh',
-        padding: isMobile ? '16px 12px' : '40px 20px',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-start',
-      }}
     >
       {/* Background Elements */}
       <div className="bg-pattern" />
       
-      <div className="main-container" style={{
-        maxWidth: isMobile ? '100%' : '1400px',
-        margin: '0 auto',
-        position: 'relative',
-        zIndex: 2,
-        flex: 1,
-        width: '100%'
-      }}>
+      <div className="main-container">
         {/* Header Section */}
-        <div className="header-wrapper" style={{
-          marginBottom: isMobile ? '24px' : '48px',
-          textAlign: 'center',
-          animation: 'slideUp 0.8s ease-out',
-        }}>
+        <div className="header-wrapper">
           <Title level={1} className="primary-title">
             Khám phá hành trình
             <span className="highlight-text"> học tập của bạn</span>
@@ -107,7 +85,7 @@ const CurriculumSelection: React.FC<CurriculumSelectionProps> = ({
 
         {!loading && !error && (
           <div className="content-wrapper">
-            <Row gutter={[16, 16]} justify="center" align="top">
+            <Row gutter={[24, 24]} justify="center" align="top">
               {/* 1. Chọn Lớp học */}
               <Col xs={24} md={7}>
                 <Card className={`step-card ${selectedGradeId ? 'card-active' : ''}`}>                  
@@ -120,19 +98,19 @@ const CurriculumSelection: React.FC<CurriculumSelectionProps> = ({
                       Chọn Lớp học
                     </Title>
                     
-                    <div className="button-group">
+                    <Space wrap size="small" className="button-group">
                       {grades.map(grade => (
                         <Button
                           key={grade.id}
                           type={selectedGradeId === grade.id ? 'primary' : 'default'}
-                          size={isMobile ? 'middle' : 'middle'}
+                          size="middle"
                           onClick={() => handleGradeSelect(grade.id)}
                           className={`choice-btn ${selectedGradeId === grade.id ? 'btn-selected' : ''}`}
                         >
                           {grade.name}
                         </Button>
                       ))}
-                    </div>
+                    </Space>
                   </div>
                 </Card>
               </Col>
@@ -150,12 +128,12 @@ const CurriculumSelection: React.FC<CurriculumSelectionProps> = ({
                     </Title>
                     
                     {subjects.length > 0 ? (
-                      <div className="button-group">
+                      <Space wrap size="small" className="button-group">
                         {subjects.map(subject => (
                           <Button
                             key={subject.id}
                             type={selectedSubjectId === subject.id ? 'primary' : 'default'}
-                            size={isMobile ? 'middle' : 'middle'}
+                            size="middle"
                             icon={getSubjectIcon(subject.name)}
                             onClick={() => handleSubjectSelect(subject.id)}
                             className={`choice-btn ${selectedSubjectId === subject.id ? 'btn-selected' : ''}`}
@@ -163,7 +141,7 @@ const CurriculumSelection: React.FC<CurriculumSelectionProps> = ({
                             {subject.name}
                           </Button>
                         ))}
-                      </div>
+                      </Space>
                     ) : (
                       <div className="placeholder-state">
                         <Text type="secondary">
@@ -228,13 +206,17 @@ const CurriculumSelection: React.FC<CurriculumSelectionProps> = ({
       </div>
 
       <style jsx>{`
+        /* Giữ nguyên class này */
         .curriculum-selection {
           background: linear-gradient(
             135deg,
             #667eea 0%,
             #764ba2 100%
           );
-          overflow-x: hidden;
+          overflow: hidden; 
+          min-height: 300px !important;
+          padding: 40px 20px;
+          position: relative;
         }
 
         .bg-pattern {
@@ -246,7 +228,7 @@ const CurriculumSelection: React.FC<CurriculumSelectionProps> = ({
           background-image: 
             radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 2px, transparent 0),
             radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.1) 2px, transparent 0);
-          background-size: 80px 80px;
+          background-size: 100px 100px;
           z-index: 1;
         }
 
@@ -265,21 +247,24 @@ const CurriculumSelection: React.FC<CurriculumSelectionProps> = ({
         }
 
         .main-container {
+          max-width: 1400px;
+          margin: 0 auto;
           position: relative;
           z-index: 2;
         }
 
         .header-wrapper {
           text-align: center;
+          margin-bottom: 48px;
           animation: slideUp 0.8s ease-out;
         }
 
         .primary-title {
           color: white !important;
-          font-size: clamp(1.4rem, 6vw, 3rem) !important;
+          font-size: clamp(1.2rem, 4vw, 3rem) !important;
           font-weight: 700 !important;
           line-height: 1.2 !important;
-          margin-bottom: 12px !important;
+          margin-bottom: 16px !important;
           animation: slideUp 0.8s ease-out 0.4s both;
         }
 
@@ -293,33 +278,33 @@ const CurriculumSelection: React.FC<CurriculumSelectionProps> = ({
 
         .description {
           color: rgba(255, 255, 255, 0.9) !important;
-          font-size: clamp(14px, 4vw, 18px) !important;
-          line-height: 1.5 !important;
-          max-width: 90% !important;
+          font-size: 18px !important;
+          line-height: 1.6 !important;
+          max-width: 600px !important;
           margin: 0 auto !important;
           animation: slideUp 0.8s ease-out 0.6s both;
         }
 
         .spinner-wrapper {
           text-align: center;
-          padding: 60px 0;
+          padding: 80px 0;
           animation: fadeInScale 0.5s ease-out;
         }
 
         .spinner-container {
-          margin-bottom: 20px;
+          margin-bottom: 24px;
         }
 
         .spinner-text {
           color: rgba(255, 255, 255, 0.85);
-          font-size: 14px;
+          font-size: 16px;
           font-weight: 500;
         }
 
         .alert-message {
-          margin-bottom: 24px;
-          border-radius: 12px !important;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+          margin-bottom: 32px;
+          border-radius: 16px !important;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
           animation: slideUp 0.5s ease-out;
         }
 
@@ -329,15 +314,17 @@ const CurriculumSelection: React.FC<CurriculumSelectionProps> = ({
         }
 
         .step-card {
-          border-radius: 16px !important;
+          border-radius: 20px !important;
           background: rgba(255, 255, 255, 0.95) !important;
           backdrop-filter: blur(20px) !important;
           border: 2px solid rgba(255, 255, 255, 0.2) !important;
-          box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08) !important;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08) !important;
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
           position: relative !important;
           overflow: hidden !important;
-          margin-bottom: 16px !important;
+          height: 380px !important;
+          display: flex;
+          flex-direction: column;
         }
 
         .step-card::before {
@@ -346,16 +333,16 @@ const CurriculumSelection: React.FC<CurriculumSelectionProps> = ({
           top: 0;
           left: 0;
           right: 0;
-          height: 3px;
+          height: 4px;
           background: linear-gradient(90deg, #f0f0f0 0%, #e0e0e0 100%);
           transition: background 0.3s ease;
         }
 
         .step-card.card-active {
           background: rgba(255, 255, 255, 1) !important;
-          box-shadow: 0 8px 32px rgba(96, 165, 250, 0.15) !important;
+          box-shadow: 0 16px 48px rgba(96, 165, 250, 0.15) !important;
           border: 2px solid rgba(96, 165, 250, 0.2) !important;
-          transform: translateY(-2px);
+          transform: translateY(-4px);
         }
 
         .step-card.card-active::before {
@@ -363,56 +350,56 @@ const CurriculumSelection: React.FC<CurriculumSelectionProps> = ({
         }
 
         .step-card:hover {
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
-          transform: translateY(-1px);
+          box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12) !important;
+          transform: translateY(-2px);
         }
 
         .step-card.card-disabled {
-          opacity: 0.6;
+          opacity: 0.5;
           pointer-events: none;
-          filter: grayscale(0.2);
+          filter: grayscale(0.3);
         }
 
         .card-inner {
-          padding: 20px 16px !important;
+          padding: 4px 16px !important;
           text-align: center;
+          height: 100% !important;
           display: flex !important;
           flex-direction: column !important;
-          align-items: center !important;
+          justify-content: flex-start !important;
           gap: 16px !important;
-          min-height: 200px !important;
         }
 
         .number-badge {
-          width: 40px;
-          height: 40px;
+          width: 48px;
+          height: 48px;
           border-radius: 50%;
           background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
           display: flex;
           align-items: center;
           justify-content: center;
+          margin: 0 auto;
           color: #999;
-          font-size: 16px;
+          font-size: 18px;
           font-weight: 700;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-          flex-shrink: 0;
         }
 
         .number-badge.badge-active {
           background: linear-gradient(135deg, #60A5FA 0%, #F472B6 100%);
           color: white;
-          box-shadow: 0 4px 16px rgba(96, 165, 250, 0.4);
+          box-shadow: 0 4px 20px rgba(96, 165, 250, 0.4);
           transform: scale(1.05);
         }
 
         .card-title {
           margin: 0 !important;
           color: #666 !important;
-          font-size: 16px !important;
+          font-size: 18px !important;
           font-weight: 600 !important;
           transition: color 0.3s ease !important;
-          flex-shrink: 0;
+          height: auto !important;
         }
 
         .card-title.title-active {
@@ -420,33 +407,31 @@ const CurriculumSelection: React.FC<CurriculumSelectionProps> = ({
         }
 
         .button-group {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-          align-items: flex-start;
-          gap: 8px;
-          width: 100%;
           flex: 1;
-          align-content: flex-start;
+          justify-content: center;
+          gap: 10px;
+          flex-wrap: wrap;
+          min-height: 140px !important;
+          display: flex !important;
+          align-items: flex-start !important;
+          align-content: flex-start !important;
         }
         
         .choice-btn {
-          border-radius: 10px !important;
+          border-radius: 12px !important;
           font-weight: 600 !important;
-          height: 36px !important;
-          font-size: 13px !important;
-          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+          min-width: 40px !important;
+          height: 30px !important;
+          font-size: 14px !important;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
           border: 2px solid #e8e8e8 !important;
-          padding: 0 12px !important;
           background: white !important;
           color: #666 !important;
-          min-width: auto !important;
-          flex-shrink: 0;
         }
 
         .choice-btn:hover {
-          transform: translateY(-1px) !important;
-          box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1) !important;
+          transform: translateY(-2px) scale(1.02) !important;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
           border-color: #d0d0d0 !important;
         }
         
@@ -455,8 +440,8 @@ const CurriculumSelection: React.FC<CurriculumSelectionProps> = ({
           border-color: transparent !important;
           color: white !important;
           font-weight: 700 !important;
-          box-shadow: 0 4px 16px rgba(96, 165, 250, 0.3) !important;
-          transform: translateY(-1px) !important;
+          box-shadow: 0 6px 20px rgba(96, 165, 250, 0.3) !important;
+          transform: translateY(-2px) scale(1.05) !important;
         }
 
         .dropdown-select {
@@ -464,10 +449,10 @@ const CurriculumSelection: React.FC<CurriculumSelectionProps> = ({
         }
 
         .dropdown-select .ant-select-selector {
-          border-radius: 10px !important;
+          border-radius: 12px !important;
           border: 2px solid #e8e8e8 !important;
-          height: 40px !important;
-          padding: 6px 12px !important;
+          height: 44px !important;
+          padding: 8px 16px !important;
           transition: all 0.3s ease !important;
         }
 
@@ -477,44 +462,43 @@ const CurriculumSelection: React.FC<CurriculumSelectionProps> = ({
 
         .dropdown-select.ant-select-focused .ant-select-selector {
           border-color: #60A5FA !important;
-          box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.1) !important;
+          box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1) !important;
         }
 
         .dropdown-item {
-          padding: 2px 0;
+          padding: 4px 0;
         }
 
         .item-title {
-          font-size: 13px;
+          font-size: 14px;
           color: #444;
           font-weight: 500;
           line-height: 1.3;
         }
 
         .placeholder-state {
-          padding: 16px 8px;
+          flex: 1;
+          padding: 20px 0;
+          min-height: 70px !important;
           display: flex !important;
           align-items: center !important;
           justify-content: center !important;
           background: rgba(249, 249, 249, 0.5);
-          border-radius: 10px;
+          border-radius: 12px;
           border: 2px dashed #e0e0e0;
-          flex: 1;
-          width: 100%;
         }
 
         .placeholder-state .ant-typography {
-          font-size: 13px !important;
-          line-height: 1.4 !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
           color: #999 !important;
           font-weight: 500 !important;
-          text-align: center !important;
         }
 
         @keyframes slideUp {
           from {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(30px);
           }
           to {
             opacity: 1;
@@ -525,7 +509,7 @@ const CurriculumSelection: React.FC<CurriculumSelectionProps> = ({
         @keyframes fadeInScale {
           from { 
             opacity: 0;
-            transform: scale(0.95);
+            transform: scale(0.9);
           }
           to { 
             opacity: 1;
@@ -533,140 +517,81 @@ const CurriculumSelection: React.FC<CurriculumSelectionProps> = ({
           }
         }
         
-        /* Mobile-first responsive design */
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+          .step-card {
+            height: 320px !important;
+          }
+          
+          .button-group {
+            min-height: 120px !important;
+          }
+          
+          .placeholder-state {
+            min-height: 120px !important;
+          }
+        }
+
         @media (max-width: 768px) {
           .curriculum-selection {
-            padding: 16px 12px !important;
+            padding: 24px 12px;
           }
 
           .header-wrapper {
-            margin-bottom: 20px !important;
+            margin-bottom: 32px;
           }
-
-          .primary-title {
-            font-size: 1.4rem !important;
-            margin-bottom: 8px !important;
-          }
-
           .description {
-            font-size: 14px !important;
-            max-width: 95% !important;
+            font-size: 16px !important;
           }
 
-          .card-inner {
-            padding: 16px 12px !important;
-            gap: 12px !important;
-            min-height: 180px !important;
+          .step-card {
+            margin-bottom: 20px;
+            height: 280px !important;
           }
-
           .number-badge {
-            width: 36px;
-            height: 36px;
-            font-size: 14px;
+            width: 42px;
+            height: 42px;
+            font-size: 16px;
           }
 
           .card-title {
-            font-size: 15px !important;
+            font-size: 16px !important;
+          }
+
+          .choice-btn {
+            height: 36px !important;
+            font-size: 13px !important;
+            min-width: 60px !important;
+          }
+          
+          .button-group {
+            min-height: 100px !important;
+          }
+          
+          .placeholder-state {
+            min-height: 100px !important;
+            padding: 16px 0;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .step-card {
+            height: 260px !important;
           }
 
           .choice-btn {
             height: 32px !important;
             font-size: 12px !important;
-            padding: 0 10px !important;
+            min-width: 55px !important;
+            padding: 0 12px !important;
           }
           
           .button-group {
-            gap: 6px;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .curriculum-selection {
-            padding: 12px 8px !important;
-          }
-
-          .primary-title {
-            font-size: 1.25rem !important;
-          }
-
-          .description {
-            font-size: 13px !important;
-          }
-
-          .card-inner {
-            padding: 14px 10px !important;
-            gap: 10px !important;
-            min-height: 160px !important;
+            min-height: 90px !important;
           }
           
-          .number-badge {
-            width: 32px;
-            height: 32px;
-            font-size: 13px;
-          }
-
-          .card-title {
-            font-size: 14px !important;
-          }
-
-          .choice-btn {
-            height: 30px !important;
-            font-size: 11px !important;
-            padding: 0 8px !important;
-          }
-
-          .dropdown-select .ant-select-selector {
-            height: 36px !important;
-            padding: 4px 10px !important;
-          }
-        }
-
-        @media (max-width: 375px) {
-          .curriculum-selection {
-            padding: 10px 6px !important;
-          }
-
-          .card-inner {
-            padding: 12px 8px !important;
-            min-height: 150px !important;
-          }
-
-          .choice-btn {
-            height: 28px !important;
-            font-size: 10px !important;
-            padding: 0 6px !important;
-          }
-
-          .button-group {
-            gap: 4px;
-          }
-        }
-
-        /* Tablet và desktop */
-        @media (min-width: 769px) {
-          .step-card {
-            height: 320px !important;
-          }
-
-          .card-inner {
-            padding: 24px 20px !important;
-            min-height: auto !important;
-          }
-
-          .number-badge {
-            width: 48px;
-            height: 48px;
-            font-size: 18px;
-          }
-
-          .card-title {
-            font-size: 18px !important;
-          }
-
-          .choice-btn {
-            height: 40px !important;
-            font-size: 14px !important;
-            padding: 0 16px !important;
+          .placeholder-state {
+            min-height: 90px !important;
           }
         }
       `}</style>
