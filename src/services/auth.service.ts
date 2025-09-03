@@ -18,7 +18,9 @@ const authService = {
   async signup(payload: SignupPayload) {
     const url = `${api_backend}/auth/signup`;
     const response = await axios.post(url, payload, {
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" ,
+        'ngrok-skip-browser-warning': 'true',},
+      
     });
     return response.data;
   },
@@ -28,7 +30,8 @@ const authService = {
     const response = await axios.post(
       url,
       { email },
-      { headers: { "Content-Type": "application/json" } }
+      { headers: { "Content-Type": "application/json" ,
+        'ngrok-skip-browser-warning': 'true',} }
     );
     return response.data;
   },
@@ -38,7 +41,8 @@ const authService = {
     const response = await axios.post(
       url,
       { email, otp },
-      { headers: { "Content-Type": "application/json" } }
+      { headers: { "Content-Type": "application/json" ,
+        'ngrok-skip-browser-warning': 'true',} }
     );
     return response.data;
   },
@@ -46,7 +50,8 @@ const authService = {
   async resetPassword(payload: ResetPasswordPayload) {
     const url = `${api_backend}/auth/reset-password`;
     const response = await axios.post(url, payload, {
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" ,
+        'ngrok-skip-browser-warning': 'true',},
     });
     return response.data;
   },
@@ -56,7 +61,8 @@ const authService = {
     const response = await axios.post(
       url,
       { email },
-      { headers: { "Content-Type": "application/json" } }
+      { headers: { "Content-Type": "application/json" ,
+        'ngrok-skip-browser-warning': 'true',} }
     );
     return response.data;
   },
@@ -90,7 +96,8 @@ const authService = {
     const response = await axios.post(
       url,
       { refreshToken },
-      { headers: { "Content-Type": "application/json" } }
+      { headers: { "Content-Type": "application/json" ,
+        'ngrok-skip-browser-warning': 'true',} }
     );
     return response.data;
   },
@@ -102,6 +109,7 @@ const authService = {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
+        'ngrok-skip-browser-warning': 'true',
       },
     });
     return response.data;
@@ -119,6 +127,7 @@ const authService = {
             headers: {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
+              'ngrok-skip-browser-warning': 'true',
             },
           }
         );
