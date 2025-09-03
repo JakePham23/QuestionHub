@@ -14,8 +14,16 @@ export async function fetchCurriculumData(): Promise<CurriculumItem[]> {
     if (!response.ok) {
       throw new Error('Không thể kết nối tới server để tải dữ liệu chương trình học.');
     }
-    const data: CurriculumItem[] = await response.json();
-    return data;
+    // Lấy toàn bộ đối tượng JSON từ phản hồi
+    const result = await response.json();
+    
+    // Kiểm tra và trả về mảng metadata
+    if (result && Array.isArray(result.metadata)) {
+      return result.metadata;
+    } else {
+      console.error("Dữ liệu trả về không có thuộc tính 'metadata' hoặc không phải là mảng:", result);
+      return [];
+    }
   } catch (err) {
     console.error("Lỗi khi tải dữ liệu chương trình học:", err);
     throw new Error("Lỗi khi tải dữ liệu chương trình học.");
@@ -47,8 +55,15 @@ export async function fetchExams(gradeId: number | null, subjectId: number | nul
     if (!response.ok) {
       throw new Error("Đề thi loại này chưa được cập nhật. Vui lòng liên hệ Admin hoặc chờ Admin cập nhật thêm nhé!");
     }
-    const data: ExamItem[] = await response.json();
-    return data;
+    const result = await response.json();
+    
+    // Tương tự, kiểm tra và trích xuất mảng metadata
+    if (result && Array.isArray(result.metadata)) {
+      return result.metadata;
+    } else {
+      console.error("Dữ liệu đề thi trả về không có thuộc tính 'metadata' hoặc không phải là mảng:", result);
+      return [];
+    }
   } catch (err) {
     console.error("Lỗi khi tải danh sách đề thi:", err);
     if (err instanceof Error) {

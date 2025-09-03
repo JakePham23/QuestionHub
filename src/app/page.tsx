@@ -87,9 +87,12 @@ export default function Home() {
   // =================================================================
   const grades: GradeItem[] = useMemo(() => {
     const gradeMap = new Map<number, GradeItem>();
-    curriculumData.forEach((item) => {
-      gradeMap.set(item.grade_id, { id: item.grade_id, name: item.grade_name });
-    });
+    // Thêm điều kiện kiểm tra
+    if (curriculumData && Array.isArray(curriculumData)) { 
+      curriculumData.forEach((item) => {
+        gradeMap.set(item.grade_id, { id: item.grade_id, name: item.grade_name });
+      });
+    }
     return Array.from(gradeMap.values());
   }, [curriculumData]);
 

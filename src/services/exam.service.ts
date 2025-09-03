@@ -1,4 +1,4 @@
-// src/services/examService.ts
+// src/services/exam.service.ts
 import { ExamDetail, Question, SavedExamData } from '../types/exam.type';
 import { api_backend } from '../utils/api';
 
@@ -24,36 +24,23 @@ export async function getExamData(examId: string): Promise<{ questions: Question
       throw new Error('Không thể tải đề thi từ server');
     }
 
-    const questions: Question[] = await res2.json();
-    const examDetail: ExamDetail = await res1.json();
+    const result1 = await res1.json();
+    const result2 = await res2.json();
 
+    // Giả định examDetail nằm trong metadata của response 1
+    const examDetail: ExamDetail = result1.metadata;
+
+    // Giả định questions nằm trong metadata của response 2
+    const questions: Question[] = result2.metadata;
+    
+    if (!examDetail || !questions) {
+      throw new Error("Cấu trúc dữ liệu đề thi không hợp lệ.");
+    }
+    
     return { questions, examDetail };
 
   } catch (err) {
     console.error('Lỗi khi tải dữ liệu đề thi:', err);
     throw new Error('Lỗi kết nối hoặc tải dữ liệu');
-  }
-}
-
-// Hàm lưu dữ liệu bài làm lên server
-export async function saveExamToServer(examId: string, examData: Partial<SavedExamData>): Promise<void> {
-  try {
-    const response = await fetch(`/api/exam/${examId}/save`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'ngrok-skip-browser-warning': 'true',
-      },
-      body: JSON.stringify(examData),
-    });
-
-    if (response.ok) {
-      console.log('☁️ Đã lưu bài làm lên server thành công');
-    } else {
-      console.error('Không thể lưu bài làm lên server. Status:', response.status);
-    }
-  } catch (error) {
-    console.error('Lỗi khi kết nối đến server để lưu:', error);
-    // Có thể thêm logic lưu vào localStorage ở đây nếu muốn, nhưng ở đây ta sẽ xử lý ở component để dễ dàng quản lý
   }
 }
