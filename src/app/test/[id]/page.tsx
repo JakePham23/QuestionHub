@@ -8,11 +8,12 @@ import { notFound } from 'next/navigation';
 import QuestionListAndCards from '../components/QuestionListAndCards'; 
 import QuestionImage from '../components/QuestionImage'; // Import component mới
 import { Question } from '@/types/exam.type';
+type Params = Promise<{ id: string }>
 
 const { Title, Paragraph } = Typography;
 
-export default async function page({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default async function page({ params }: { params: Params }) {
+  const { id } = await params;
 
   if (!id) {
     notFound(); 
