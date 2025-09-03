@@ -9,6 +9,7 @@ import QuestionListAndCards from '../components/QuestionListAndCards';
 import QuestionImage from '../components/QuestionImage'; // Import component mới
 import { Question } from '@/types/exam.type';
 type Params = Promise<{ id: string }>
+import { getExamData } from '../../../services/exam.service'; // Import the service
 
 const { Title, Paragraph } = Typography;
 
@@ -19,30 +20,11 @@ export default async function page({ params }: { params: Params }) {
     notFound(); 
   }
 
+  let questions: Question[] = [];
+
   try {
-    const response = await fetch(`http://localhost:3001/api/exams/${id}/questions`, {
-      cache: 'no-store' 
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-
-    if (!data.metadata || data.metadata.length === 0) {
-      return (
-        <Alert
-          message="Không có dữ liệu"
-          description={`Không tìm thấy câu hỏi nào cho bài thi ID: ${id}. Vui lòng kiểm tra lại endpoint API hoặc cấu trúc dữ liệu trả về.`}
-          type="warning"
-          showIcon
-          style={{ margin: '20px' }}
-        />
-      );
-    }
-
-    const questions = data.metadata;
+    const data = await getExamData(id); // Use the service function
+    questions = data.questions;
 
     return (
       <div style={{ padding: '20px' }}>
