@@ -1,11 +1,12 @@
 // src/app/test/components/QuestionListAndCards.tsx
 'use client';
 import React from 'react';
-import { Card, Typography } from 'antd';
-import QuestionCard from '../../exam/components/QuestionCard'; // Import QuestionCard
-import { Question } from '@/types/exam.type';
+import { Typography } from 'antd';
+// Import component QuestionList đã được xây dựng sẵn
+import QuestionList from '../../../components/questions/QuestionList';
+import { Question, UserAnswers, ExamStatus } from '@/types/exam.type';
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Paragraph } = Typography;
 
 interface QuestionListAndCardsProps {
   questions: Question[];
@@ -13,6 +14,14 @@ interface QuestionListAndCardsProps {
 }
 
 const QuestionListAndCards: React.FC<QuestionListAndCardsProps> = ({ questions, versionId }) => {
+  // Chuẩn bị các props giả định để truyền vào QuestionList
+  // Trong môi trường thực tế, các giá trị này sẽ được lấy từ state của ứng dụng
+  const userAnswers: UserAnswers = {}; // Ví dụ: một đối tượng rỗng
+  const onAnswerChange = () => {}; // Một hàm rỗng
+  const examStatus: ExamStatus = "in-progress";
+  const currentQuestionIndex = 0; // Đang ở câu hỏi đầu tiên
+  const isMobile = false; // Giá trị giả định
+
   return (
     <div style={{ padding: '20px' }}>
       <Title>Kiểm tra Render Câu hỏi từ Backend</Title>
@@ -23,18 +32,15 @@ const QuestionListAndCards: React.FC<QuestionListAndCardsProps> = ({ questions, 
         Đã tìm thấy **{questions.length}** câu hỏi.
       </Paragraph>
 
-      {questions.map((question, index) => (
-        // Sử dụng component QuestionCard để render từng câu hỏi
-        <QuestionCard
-          key={question.question_id}
-          question={question}
-          index={index}
-          isCurrent={false} // Giá trị giả định cho mục đích test
-          userAnswer={undefined} // Giá trị giả định cho mục đích test
-          onAnswerChange={() => {}} // Hàm rỗng cho mục đích test
-          examStatus="in-progress" // Giá trị giả định cho mục đích test
-        />
-      ))}
+      {/* Sử dụng lại component QuestionList để render danh sách câu hỏi */}
+      <QuestionList
+        questions={questions}
+        userAnswers={userAnswers}
+        onAnswerChange={onAnswerChange}
+        examStatus={examStatus}
+        currentQuestionIndex={currentQuestionIndex}
+        isMobile={isMobile}
+      />
     </div>
   );
 };

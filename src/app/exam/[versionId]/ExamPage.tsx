@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Layout, Alert, Modal, Card, Button, Drawer } from 'antd';
-import QuestionList from '../components/QuestionList';
+import QuestionList from '../../../components/questions/QuestionList';
 import ExamHeader from '../components/ExamHeader';
-import QuestionNavigation from '../components/QuestionNavigation';
+import QuestionNavigation from '../../../components/questions/QuestionNavigation';
 import React from 'react';
 import { MenuOutlined } from '@ant-design/icons';
 import { useNotify } from '@/providers/NotificationProvider';
