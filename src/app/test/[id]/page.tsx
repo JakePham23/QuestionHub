@@ -3,13 +3,12 @@
 // Đây là Server Component, không cần 'use client'
 import React from 'react';
 import { Typography, Alert } from 'antd';
-import { getMediaUrl } from '../../../utils/media';
 import { notFound } from 'next/navigation';
 import QuestionListAndCards from '../components/QuestionListAndCards'; 
 import QuestionImage from '../components/QuestionImage'; // Import component mới
 import { Question } from '@/types/exam.type';
 type Params = Promise<{ id: string }>
-import { getExamData } from '../../../services/exam.service'; // Import the service
+import { getExerciseData } from '../../../services/exercise.service'; // Import the service
 
 const { Title, Paragraph } = Typography;
 
@@ -23,7 +22,7 @@ export default async function page({ params }: { params: Params }) {
   let questions: Question[] = [];
 
   try {
-    const data = await getExamData(id); // Use the service function
+    const data = await getExerciseData(id); // Use the service function
     questions = data.questions;
 
     return (

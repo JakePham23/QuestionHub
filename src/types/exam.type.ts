@@ -1,11 +1,12 @@
 // types/exam.type.ts
+'use client';
 
 // Định nghĩa các kiểu dữ liệu cơ bản
 interface Answer {
   answer_id: string;
   is_correct?: boolean;
   choice_text: string;
-  choice_media_url?: string;
+  choice_image_url?: string;
 }
 
 interface Question {
