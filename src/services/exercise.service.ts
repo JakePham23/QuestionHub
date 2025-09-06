@@ -1,4 +1,4 @@
-// src/services/exam.service.ts
+// src/services/exercise.service.ts
 import { Question } from '@/types/exam.type';
 import { api_backend } from '../utils/api';
 import { TopicExerciseInfo } from '@/types/exercise.type';
@@ -27,7 +27,6 @@ export async function getExerciseTopics(): Promise<ExerciseTopicsResponse> {
 
     const result = await response.json();
 
-    // Trả về đúng cấu trúc { metadata: [...] }
     return { metadata: result.metadata };
   } catch (error) {
     console.error('Error fetching exercise topics:', error);

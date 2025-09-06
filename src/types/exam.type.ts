@@ -1,5 +1,6 @@
 // types/exam.type.ts
-'use client';
+
+import { Difficulty, QuestionType, UserAnswer, UserAnswers } from './common.type';
 
 // Định nghĩa các kiểu dữ liệu cơ bản
 interface Answer {
@@ -11,11 +12,11 @@ interface Answer {
 
 interface Question {
   question_id: string;
-  question_type: 'trac_nghiem' | 'dung_sai' | 'dien_dap_an' | 'tu_luan';
+  question_type: QuestionType; // Đã thay đổi
   question_text: string;
   question_url?: string;
   answer_choices?: Answer[];
-  difficulty_level?: 'nhan_biet' | 'thong_hieu' | 'van_dung' | 'van_dung_cao';
+  difficulty_level?: Difficulty; // Đã thay đổi
   topic_name?: string;
   chapter_name?: string;
 }
@@ -30,12 +31,6 @@ interface ExamDetail {
   subject_name: string;
   grade_name: string;
   source_name: string;
-}
-
-type UserAnswer = string | string[] | boolean | number | undefined | null;
-
-interface UserAnswers {
-  [questionId: string]: UserAnswer;
 }
 
 type ExamStatus = 'not-started' | 'in-progress' | 'submitted' | 'time-up';
@@ -59,7 +54,7 @@ type AnswerStatus =
 interface QuestionResult {
   question_id: string;
   question_text: string;
-  question_type: string;
+  question_type: QuestionType; // Đã thay đổi
   user_answer: UserAnswer;
   correct_answer_id?: string;
   is_correct: boolean;
