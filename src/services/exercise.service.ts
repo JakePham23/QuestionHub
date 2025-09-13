@@ -34,11 +34,11 @@ export async function getExerciseTopics(): Promise<ExerciseTopicsResponse> {
 export async function getExerciseTopicStatus(): Promise<ExerciseTopicStatusResponse> {
   // 1️⃣ Lấy user từ localStorage
   const userJson = localStorage.getItem('user');
-  if (!userJson) throw new Error('User not found in localStorage');
+  if (!userJson) return { metadata: [] }; // Return empty metadata if user not found
   
   const user = JSON.parse(userJson);
   const userId = user?.id;
-  if (!userId) throw new Error('Invalid user data in localStorage');
+  // if (!userId) throw new Error('Invalid user data in localStorage');
 
   // 2️⃣ Gửi user_id lên backend
   const response = await fetch(
@@ -50,9 +50,9 @@ export async function getExerciseTopicStatus(): Promise<ExerciseTopicStatusRespo
   );
 
   // 3️⃣ Xử lý phản hồi
-  if (!response.ok) {
-    throw new Error(`Failed to fetch exercise topics: ${response.statusText}`);
-  }
+  // if (!response.ok) {
+  //   throw new Error(`Failed to fetch exercise topics: ${response.statusText}`);
+  // }
 
   const result = await response.json();
   return { metadata: result.metadata };
