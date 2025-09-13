@@ -129,7 +129,7 @@ const ExamResults: React.FC<ExamResultsProps> = ({
                         background: 'linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)',
                       }}
                       actions={[
-                        <Link href={`/exam/${exam.exam_id}`} key="start">
+                        <Link href={`/exams/${exam.exam_id}`} key="start">
                           <Button 
                             type="primary" 
                             icon={<PlayCircleOutlined />}

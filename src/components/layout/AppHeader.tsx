@@ -44,7 +44,7 @@ const navItems: NavItem[] = [
   { key: "/about", label: <Link href="/about">Giới thiệu</Link> },
   { key: "/contact", label: <Link href="/contact">Liên hệ</Link> },
   { key: "/blog", label: <Link href="/blog">Bản tin học tập</Link> },
-  { key: "/exercise", label: <Link href="/exercise">Luyện tập</Link> },
+  { key: "/exercises", label: <Link href="/exercises">Luyện tập</Link> },
 ];
 
 export default function AppHeader(): JSX.Element {
@@ -124,6 +124,7 @@ export default function AppHeader(): JSX.Element {
         }}
       >
         <div
+        suppressHydrationWarning
           className="logo"
           style={{ marginTop: "4px", display: "flex", alignItems: "center" }}
         >

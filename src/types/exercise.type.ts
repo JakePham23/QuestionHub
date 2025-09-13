@@ -1,87 +1,76 @@
-// src/types/exercise.type.ts
-
-import { Difficulty, QuestionType, UserAnswer, UserAnswers } from './common.type';
+import { Difficulty, QuestionType, UserAnswers } from './common.type';
 
 /**
- * Định nghĩa các trạng thái của một bài tập.
+ * Trạng thái của một bài tập.
  */
 export type ExerciseStatus = 'not_started' | 'in_progress' | 'completed' | 'all';
 
-/**
- * Định nghĩa cấu trúc dữ liệu cơ bản cho một bài tập.
- */
 export interface Exercise {
-    id: number;
-    title: string;
-    description: string;
-    subject: string;
-    grade: string;
-    chapter: string;
-    topic?: string;
-    type: string;
-    totalQuestions: number;
-    status: ExerciseStatus;
-    completedAt?: string;
+  id: number;
+  title: string;
+  description: string;
+  subject: string;
+  grade: string;
+  chapter: string | null;
+  topic?: string;
+  totalQuestions: number;
+  status: ExerciseStatus;
 }
 
-/**
- * Định nghĩa cấu trúc dữ liệu cho một chủ đề bài tập.
- */
 export interface TopicExerciseInfo {
-    topic_id: number;
-    topic_name: string;
-    topic_description: string;
-    subject_name: string;
-    grade_name: string;
-    chapter_id: number;
-    chapter_name: string;
+  topic_id: number;
+  topic_name: string;
+  topic_description: string;
+  subject_name: string;
+  grade_name: string;
+  chapter_id: number | null;      // vì có thể null nếu chưa có câu hỏi
+  chapter_name: string | null;    // cũng có thể null
+  total_questions: number;
+  exercise_status?: ExerciseStatus;  
 }
 
 /**
- * Định nghĩa cấu trúc dữ liệu cho một câu trả lời.
+ * Lựa chọn đáp án trong trắc nghiệm.
  */
 export interface Answer {
   answer_id: string;
-  is_correct?: boolean;
   choice_text: string;
   choice_image_url?: string;
+  is_correct?: boolean; // backend có thể trả hoặc không
 }
 
 /**
- * Định nghĩa cấu trúc dữ liệu cho một câu hỏi.
+ * Câu hỏi cơ bản.
  */
 export interface Question {
   question_id: string;
-  question_type: QuestionType; // Đã thay đổi
+  question_type: QuestionType;
   question_text: string;
   question_url?: string;
-  answer_choices?: Answer[];
-  difficulty_level?: Difficulty; // Đã thay đổi
+
+  answer_choices?: Answer[]; // dùng cho trắc nghiệm
+  difficulty_level?: Difficulty;
   topic_name?: string;
   chapter_name?: string;
-  id?: number;
-  options: string[];
-  correctAnswer: number;
-  explanation: string;
-  hint: string;
-  difficulty: string; // Tên cũ trong mock data
-  topic: string; // Tên cũ trong mock data
+
+  // Cho tự luận
+  explanation?: string;
+  hint?: string;
 }
 
 /**
- * Định nghĩa kiểu dữ liệu cho một câu hỏi trong chế độ học tập.
+ * Câu hỏi khi vào chế độ học tập.
+ * Có thêm đáp án đúng & hint (sau khi fetch từ API).
  */
 export interface StudyQuestion extends Question {
-  correctAnswer: number;
-  explanation: string;
-  hint: string;
-  difficulty: string;
-  topic: string;
-  hasImage?: boolean;
+  correctAnswerId?: string;      // dùng cho trắc nghiệm
+  correctAnswerText?: string;    // dùng cho tự luận
+  explanation?: string;
+  hint?: string;
 }
 
 /**
- * Định nghĩa cấu trúc lưu trữ câu trả lời của người dùng.
+ * Thông tin khi lưu tiến độ luyện tập.
  */
 export interface SavedExerciseData {
   userAnswers: UserAnswers;
@@ -92,13 +81,17 @@ export interface SavedExerciseData {
   lastSaved: number;
 }
 
+/**
+ * Props cho StudyModeCard
+ */
 export interface StudyModeCardProps {
   question: StudyQuestion;
   index: number;
   showAnswer: boolean;
   onToggleAnswer: () => void;
-  userAnswer?: number;
-  onAnswerSelect: (answerIndex: number) => void;
+  userAnswer?: string | number; // string (tự luận), number (trắc nghiệm)
+  onAnswerSelect: (answer: string | number) => void;
+  answer_corrects: AnswerCorrect[];
 }
 
 export interface QuestionNavigatorProps {
@@ -119,9 +112,28 @@ export interface StudyStatsProps {
 export interface AllQuestionsViewProps {
   questions: StudyQuestion[];
   userAnswers: UserAnswers;
-  onAnswerSelect: (questionId: string, answerIndex: number) => void;
+  onAnswerSelect: (questionId: string, answer: string | number) => void;
   onToggleAnswer: (questionId: string) => void;
   showAnswers: Set<string>;
+  showAnswerCorrect: boolean;
 }
 
-export type { UserAnswers, UserAnswer };
+/**
+ * Đáp án đúng / lời giải trả về từ API
+ */
+export interface AnswerCorrect {
+  question_id: number;
+  answer_correct: string;
+}
+
+export interface ExerciseTopicStatusInfo{
+  topic_id: number;
+  exercise_status: ExerciseStatus;
+}
+
+export interface QuestionAttempt {
+  question_id: number;
+  selected_answer_id: number | null;
+  user_answer_text: string | null;
+  is_correct: boolean;
+}
