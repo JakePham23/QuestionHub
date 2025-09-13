@@ -4,7 +4,7 @@ import { Alert } from 'antd';
 import { getExerciseData, getAnswerCorrectByTopic } from '@/services/exercise.service';
 import { StudyQuestion, AnswerCorrect } from '@/types/exercise.type';
 
-type Params = { topicId: number };
+type Params = Promise<{ topicId: number }>
 
 export default async function ExamDataFetcher({ params }: { params: Params }) {
   const { topicId } = await params;
