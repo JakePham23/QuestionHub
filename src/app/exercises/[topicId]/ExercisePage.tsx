@@ -278,54 +278,97 @@ useEffect(() => {
             </Panel>
           </PanelGroup>
         ) : (
-          <>
-            <Button
-              type="primary"
-              icon={<MenuOutlined />}
-              onClick={() => setIsDrawerVisible(true)}
-              style={{
-                position: 'fixed',
-                bottom: 20,
-                right: 20,
-                zIndex: 1000,
-                borderRadius: '50%',
-                width: 50,
-                height: 50,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            />
-            <div style={{ flex: 1, overflowY: 'auto' }}>
-              {/* ... mobile view giống trên ... */}
-            </div>
-            <Drawer
-              title="Danh sách câu hỏi"
-              placement="right"
-              onClose={() => setIsDrawerVisible(false)}
-              open={isDrawerVisible}
-              width="280px"
-            >
-              <QuestionNav
-                questions={questions}
-                currentIndex={currentQuestion}
-                onSelect={(index) => {
-                  setCurrentQuestion(index);
-                  setIsDrawerVisible(false);
-                }}
-                answeredSet={answeredSet}
-                extraContent={
-                  <StudyStats
-                    questions={questions}
-                    answeredQuestions={answeredQuestions}
-                    showAnswers={showAnswers}
-                  />
-                }
+         <>
+    <Button
+      type="primary"
+      icon={<MenuOutlined />}
+      onClick={() => setIsDrawerVisible(true)}
+      style={{
+        position: 'fixed',
+        bottom: 20,
+        right: 20,
+        zIndex: 1000,
+        borderRadius: '50%',
+        width: 50,
+        height: 50,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    />
 
-              />
-            </Drawer>
-          </>
-        )}
+    <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 80 }}>
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '50px' }}>
+          <Spin size="large" />
+          <p>Đang tải câu hỏi...</p>
+        </div>
+      ) : error ? (
+        <Alert message="Lỗi" description={error} type="error" showIcon />
+      ) : questions.length === 0 ? (
+        <Empty description="Không có câu hỏi nào trong chuyên đề này." />
+      ) : showAllQuestions ? (
+        <AllQuestionsView
+          questions={questions}
+          userAnswers={userAnswers}
+          onAnswerSelect={(id, ans) =>
+            setUserAnswers((prev) => ({ ...prev, [id]: ans }))
+          }
+          onToggleAnswer={(id) =>
+            setShowAnswers((prev) => {
+              const newSet = new Set(prev);
+              newSet.has(id) ? newSet.delete(id) : newSet.add(id);
+              return newSet;
+            })
+          }
+          showAnswers={showAnswers}
+          showAnswerCorrect={true}
+        />
+      ) : (
+        <StudyCard
+          question={questions[currentQuestion]}
+          index={currentQuestion}
+          userAnswer={
+            userAnswers[questions[currentQuestion].question_id] as
+              | string
+              | number
+              | undefined
+          }
+          onAnswerChange={(_, ans) => handleAnswerSelect(ans)}
+          showAnswer={showAnswers.has(questions[currentQuestion].question_id)}
+          onToggleAnswer={handleToggleAnswer}
+          answer_corrects={answerCorrects}
+          showAnswerCorrect={true}
+        />
+      )}
+    </div>
+
+    <Drawer
+      title="Danh sách câu hỏi"
+      placement="right"
+      onClose={() => setIsDrawerVisible(false)}
+      open={isDrawerVisible}
+      width="280px"
+    >
+      <QuestionNav
+        questions={questions}
+        currentIndex={currentQuestion}
+        onSelect={(index) => {
+          setCurrentQuestion(index);
+          setIsDrawerVisible(false);
+        }}
+        answeredSet={answeredSet}
+        extraContent={
+          <StudyStats
+            questions={questions}
+            answeredQuestions={answeredQuestions}
+            showAnswers={showAnswers}
+          />
+        }
+      />
+    </Drawer>
+  </>
+)}
       </div>
     </div>
   );
