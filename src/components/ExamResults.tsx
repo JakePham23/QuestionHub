@@ -2,8 +2,6 @@ import { Typography, Row, Col, Card, Button, Spin, Alert, Empty, Tag, Space } fr
 import { PlayCircleOutlined, ClockCircleOutlined, FileTextOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import React from 'react';
-
-// Import các kiểu dữ liệu từ file type trung tâm
 import { ExamItem } from '@/types/data.type';
 
 const { Title, Paragraph, Text } = Typography;
@@ -25,46 +23,46 @@ const ExamResults: React.FC<ExamResultsProps> = ({
 }) => {
   const hasSelectedAnyFilter = selectedGradeId || selectedSubjectId;
 
-  const emptyDescription = hasSelectedAnyFilter
-    ? (
-        <div style={{ textAlign: 'center', color: '#8c8c8c' }}>
-          <div style={{ marginBottom: '8px', fontSize: '16px', fontWeight: '500' }}>
-            Đề thi loại này chưa được cập nhật
-          </div>
-          <div style={{ fontSize: '14px' }}>
-            Vui lòng liên hệ Admin hoặc chờ Admin cập nhật thêm nhé!
-          </div>
-        </div>
-      )
-    : (
-        <div style={{ textAlign: 'center', color: '#8c8c8c' }}>
-          <div style={{ fontSize: '16px', fontWeight: '500' }}>
-            Vui lòng chọn Lớp học hoặc Môn học để xem đề thi
-          </div>
-        </div>
-      );
+  const emptyDescription = hasSelectedAnyFilter ? (
+    <div style={{ textAlign: 'center', color: '#8c8c8c' }}>
+      <div style={{ marginBottom: '8px', fontSize: '16px', fontWeight: '500' }}>
+        Đề thi loại này chưa được cập nhật
+      </div>
+      <div style={{ fontSize: '14px' }}>
+        Vui lòng liên hệ Admin hoặc chờ Admin cập nhật thêm nhé!
+      </div>
+    </div>
+  ) : (
+    <div style={{ textAlign: 'center', color: '#8c8c8c' }}>
+      <div style={{ fontSize: '16px', fontWeight: '500' }}>
+        Vui lòng chọn Lớp học hoặc Môn học để xem đề thi
+      </div>
+    </div>
+  );
 
   return (
-    <div style={{ 
-      minHeight: '40vh',
-      padding: '40px 24px', 
-      backgroundColor: '#f5f5f5',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    }}>
-      <div style={{
-        maxWidth: '1400px',
-        margin: '0 auto',
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        borderRadius: '16px',
-        padding: '40px',
-        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
-        backdropFilter: 'blur(10px)',
-      }}>
+    <div
+      style={{
+        minHeight: '40vh',
+        padding: '40px 24px',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      }}
+    >
+      <div
+        style={{
+          maxWidth: '1400px',
+          margin: '0 auto',
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          borderRadius: '16px',
+          padding: '40px',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
+          backdropFilter: 'blur(10px)',
+        }}
+      >
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <Title 
-            level={1} 
-            style={{ 
-              color: '#1890ff',
+          <Title
+            level={1}
+            style={{
               marginBottom: '16px',
               fontSize: '2.5rem',
               fontWeight: '700',
@@ -80,42 +78,45 @@ const ExamResults: React.FC<ExamResultsProps> = ({
           </Text>
         </div>
 
-        {/* Loading State */}
-        {examLoading && (
-          <div style={{ 
-            textAlign: 'center', 
-            padding: '80px 0',
-            backgroundColor: '#fafafa',
-            borderRadius: '12px',
-            border: '2px dashed #d9d9d9'
-          }}>
+        {/* ==== Loading ==== */}
+        {examLoading ? (
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '80px 0',
+              backgroundColor: '#fafafa',
+              borderRadius: '12px',
+              border: '2px dashed #d9d9d9',
+            }}
+          >
             <Spin size="large" />
             <div style={{ marginTop: '16px', color: '#666' }}>
               Đang tải danh sách đề thi...
             </div>
           </div>
-        )}
-
-        {/* Error State */}
-        {examError && (
-          <Alert 
-            message="Có lỗi xảy ra" 
-            description={examError} 
-            type="error" 
-            showIcon 
+        ) : examError ? (
+          /* ==== Error ==== */
+          <Alert
+            message="Không thể tải danh sách đề thi"
+            description={examError}
+            type="error"
+            showIcon
             style={{
               borderRadius: '12px',
-              marginBottom: '24px'
+              marginBottom: '24px',
             }}
+            action={
+              <Button size="small" onClick={() => window.location.reload()}>
+                Thử lại
+              </Button>
+            }
           />
-        )}
-
-        {/* Content */}
-        {!examLoading && !examError && (
+        ) : (
+          /* ==== Content ==== */
           <>
             {exams.length > 0 ? (
               <Row gutter={[24, 24]} justify="start">
-                {exams.map(exam => (
+                {exams.map((exam) => (
                   <Col key={exam.exam_id} xs={24} sm={12} lg={8} xl={6}>
                     <Card
                       hoverable
@@ -126,20 +127,23 @@ const ExamResults: React.FC<ExamResultsProps> = ({
                         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
                         transition: 'all 0.3s ease',
                         height: '100%',
-                        background: 'linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)',
+                        background:
+                          'linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)',
                       }}
                       actions={[
                         <Link href={`/exams/${exam.exam_id}`} key="start">
-                          <Button 
-                            type="primary" 
+                          <Button
+                            type="primary"
                             icon={<PlayCircleOutlined />}
                             size="large"
                             style={{
                               borderRadius: '8px',
                               fontWeight: '600',
-                              background: 'linear-gradient(135deg, #1890ff, #722ed1)',
+                              background:
+                                'linear-gradient(135deg, #1890ff, #722ed1)',
                               border: 'none',
-                              boxShadow: '0 4px 12px rgba(24, 144, 255, 0.3)',
+                              boxShadow:
+                                '0 4px 12px rgba(24, 144, 255, 0.3)',
                             }}
                           >
                             Bắt đầu làm bài
@@ -148,44 +152,54 @@ const ExamResults: React.FC<ExamResultsProps> = ({
                       ]}
                     >
                       <div style={{ flex: 1 }}>
-                        <Title 
-                          level={4} 
-                          style={{ 
+                        <Title
+                          level={4}
+                          style={{
                             marginBottom: '12px',
                             color: '#1f2937',
                             fontSize: '18px',
                             fontWeight: '600',
-                            lineHeight: '1.4'
+                            lineHeight: '1.4',
                           }}
                           ellipsis={{ rows: 2 }}
                         >
                           {exam.title}
                         </Title>
-                        
-                        <Paragraph 
+
+                        <Paragraph
                           ellipsis={{ rows: 3 }}
-                          style={{ 
+                          style={{
                             color: '#6b7280',
                             marginBottom: '16px',
                             fontSize: '14px',
-                            lineHeight: '1.5'
+                            lineHeight: '1.5',
                           }}
                         >
                           {exam.description}
                         </Paragraph>
                       </div>
-                      
-                      <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Tag 
-                            icon={<FileTextOutlined />} 
+
+                      <Space
+                        direction="vertical"
+                        size="small"
+                        style={{ width: '100%' }}
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <Tag
+                            icon={<FileTextOutlined />}
                             color="blue"
                             style={{ borderRadius: '6px', fontWeight: '500' }}
                           >
                             {exam.total_questions} câu hỏi
                           </Tag>
-                          <Tag 
-                            icon={<ClockCircleOutlined />} 
+                          <Tag
+                            icon={<ClockCircleOutlined />}
                             color="green"
                             style={{ borderRadius: '6px', fontWeight: '500' }}
                           >
@@ -198,17 +212,17 @@ const ExamResults: React.FC<ExamResultsProps> = ({
                 ))}
               </Row>
             ) : (
-              <div style={{
-                textAlign: 'center',
-                padding: '80px 40px',
-                backgroundColor: '#fafafa',
-                borderRadius: '16px',
-                border: '2px dashed #d9d9d9',
-                marginTop: '40px'
-              }}>
-                <Empty 
-                  description={emptyDescription}
-                />
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '80px 40px',
+                  backgroundColor: '#fafafa',
+                  borderRadius: '16px',
+                  border: '2px dashed #d9d9d9',
+                  marginTop: '40px',
+                }}
+              >
+                <Empty description={emptyDescription} />
               </div>
             )}
           </>

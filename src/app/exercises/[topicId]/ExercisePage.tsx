@@ -13,7 +13,7 @@ import ExerciseHeader from '../components/ExericseHeader';
 
 import { StudyQuestion, AnswerCorrect, QuestionAttempt } from '@/types/exercise.type';
 import { UserAnswers } from '@/types/common.type';
-import { saveQuestionAttempt, getQuestionAttempts } from '@/services/exercise.service';
+import exerciseService from '@/services/exercise.service';
 
 const { useBreakpoint } = Grid;
 
@@ -61,7 +61,7 @@ export default function StudyExercisePage({
           (a) => a.question_id === Number(q.question_id) && a.answer_correct == ans
         );
 
-        await saveQuestionAttempt({
+        await exerciseService.saveQuestionAttempt({
           user_id: userId,
           question_id: Number(q.question_id),
           selected_answer_id: typeof ans === 'number' ? ans : null,
@@ -86,7 +86,7 @@ useEffect(() => {
 
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       if (user?.id) {
-        const res = await getQuestionAttempts(topicId, user.id);
+        const res = await exerciseService.getQuestionAttempts(topicId, user.id);
         const attempts: QuestionAttempt[] = res.metadata;
 
         // build lại userAnswers từ attempts
@@ -137,7 +137,7 @@ useEffect(() => {
         return;
       }
 
-      await saveQuestionAttempt({
+      await exerciseService.saveQuestionAttempt({
         question_id: Number(qid),
         selected_answer_id: typeof ans === 'number' ? ans : null,
         user_answer_text: typeof ans === 'string' ? ans : null,

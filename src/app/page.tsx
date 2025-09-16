@@ -1,10 +1,8 @@
-// src/app/page.tsx
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
 import { Layout } from "antd";
 
-// Import types and services
 import {
   CurriculumItem,
   GradeItem,
@@ -12,12 +10,8 @@ import {
   ExamItem,
   ChapterItem,
 } from "../types/data.type";
-import {
-  fetchCurriculumData,
-  fetchExams,
-} from "../services/data.service";
+import dataService from "../services/data.service";
 
-// Import components
 import HeroSection from "../components/HeroSection";
 import CurriculumSelection from "../components/CurriculumSelection";
 import ExamResults from "../components/ExamResults";
@@ -26,35 +20,27 @@ import "@ant-design/v5-patch-for-react-19";
 const { Content } = Layout;
 
 export default function Home() {
-  // =================================================================
-  // STATE MANAGEMENT
-  // =================================================================
   const [curriculumData, setCurriculumData] = useState<CurriculumItem[]>([]);
   const [exams, setExams] = useState<ExamItem[]>([]);
+
   const [loading, setLoading] = useState<boolean>(true);
-  const [examLoading, setExamLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [examLoading, setExamLoading] = useState<boolean>(false);
   const [examError, setExamError] = useState<string | null>(null);
 
   const [selectedGradeId, setSelectedGradeId] = useState<number | null>(null);
-  const [selectedSubjectId, setSelectedSubjectId] = useState<number | null>(
-    null
-  );
-  const [selectedChapterId, setSelectedChapterId] = useState<number | null>(
-    null
-  );
+  const [selectedSubjectId, setSelectedSubjectId] = useState<number | null>(null);
+  const [selectedChapterId, setSelectedChapterId] = useState<number | null>(null);
 
-  // =================================================================
-  // DATA FETCHING with Services
-  // =================================================================
   useEffect(() => {
     const getData = async () => {
       try {
         setLoading(true);
-        const data = await fetchCurriculumData();
+        const data = await dataService.fetchCurriculumData();
         setCurriculumData(data);
         setError(null);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -66,12 +52,12 @@ export default function Home() {
 
   useEffect(() => {
     const getExams = async () => {
-      setExamLoading(true);
-      setExamError(null);
       try {
-        const data = await fetchExams(selectedGradeId, selectedSubjectId);
+        setExamLoading(true);
+        setExamError(null);
+        const data = await dataService.fetchExams(selectedGradeId, selectedSubjectId);
         setExams(data);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         setExams([]);
         setExamError(err.message);
@@ -82,13 +68,9 @@ export default function Home() {
     getExams();
   }, [selectedGradeId, selectedSubjectId]);
 
-  // =================================================================
-  // CASCADING LOGIC (LỌC DỮ LIỆU)
-  // =================================================================
   const grades: GradeItem[] = useMemo(() => {
     const gradeMap = new Map<number, GradeItem>();
-    // Thêm điều kiện kiểm tra
-    if (curriculumData && Array.isArray(curriculumData)) { 
+    if (curriculumData && Array.isArray(curriculumData)) {
       curriculumData.forEach((item) => {
         gradeMap.set(item.grade_id, { id: item.grade_id, name: item.grade_name });
       });

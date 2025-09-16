@@ -1,7 +1,7 @@
 // src/utils/media.ts
 
 // Import biến môi trường cho URL của backend
-import { api } from './api';
+const api  = process.env.NEXT_PUBLIC_API_BACKEND
 
 /**
  * Xây dựng URL hoàn chỉnh cho file media bằng cách sử dụng endpoint proxy.

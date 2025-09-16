@@ -1,5 +1,5 @@
-import axios from "axios";
-import { api_backend } from "@/utils/api";
+import axios from "@/utils/axios.customize";
+const version  = '/api'
 
 interface SignupPayload {
   username: string;
@@ -16,7 +16,7 @@ interface ResetPasswordPayload {
 
 const authService = {
   async signup(payload: SignupPayload) {
-    const url = `${api_backend}/auth/signup`;
+    const url = `${ version}/auth/signup`;
     const response = await axios.post(url, payload, {
       headers: { "Content-Type": "application/json" ,
         'ngrok-skip-browser-warning': 'true',},
@@ -26,7 +26,7 @@ const authService = {
   },
 
   async requestPasswordReset(email: string) {
-    const url = `${api_backend}/auth/forgot-password`;
+    const url = `${ version}/auth/forgot-password`;
     const response = await axios.post(
       url,
       { email },
@@ -37,7 +37,7 @@ const authService = {
   },
 
   async verifyOTP(email: string, otp: string) {
-    const url = `${api_backend}/auth/verify-otp`;
+    const url = `${ version}/auth/verify-otp`;
     const response = await axios.post(
       url,
       { email, otp },
@@ -48,7 +48,7 @@ const authService = {
   },
 
   async resetPassword(payload: ResetPasswordPayload) {
-    const url = `${api_backend}/auth/reset-password`;
+    const url = `${ version}/auth/reset-password`;
     const response = await axios.post(url, payload, {
       headers: { "Content-Type": "application/json" ,
         'ngrok-skip-browser-warning': 'true',},
@@ -57,7 +57,7 @@ const authService = {
   },
 
   async resendOTP(email: string) {
-    const url = `${api_backend}/auth/resend-otp`;
+    const url = `${ version}/auth/resend-otp`;
     const response = await axios.post(
       url,
       { email },
@@ -70,7 +70,7 @@ const authService = {
   // Login with GG
   async googleSignIn(idToken: string) {
     console.log("🔍 DEBUG: Google Sign-In ID Token:", idToken);
-    const url = `${api_backend}/auth/google/signin`;
+    const url = `${ version}/auth/google/signin`;
     try {
       const response = await axios.post(
         url,
@@ -92,7 +92,7 @@ const authService = {
     }
   },
   async refreshToken(refreshToken: string) {
-    const url = `${api_backend}/auth/refresh-token`;
+    const url = `${ version}/auth/refresh-token`;
     const response = await axios.post(
       url,
       { refreshToken },
@@ -104,7 +104,7 @@ const authService = {
   async getCurrentUser() {
     const token = localStorage.getItem("authToken");
     if (!token) return null;
-    const url = `${api_backend}/auth/me`;
+    const url = `${ version}/auth/me`;
     const response = await axios.get(url, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -119,7 +119,7 @@ const authService = {
     const token = localStorage.getItem("authToken");
     if (token) {
       try {
-        const url = `${api_backend}/auth/logout`;
+        const url = `${ version}/auth/logout`;
         await axios.post(
           url,
           {},

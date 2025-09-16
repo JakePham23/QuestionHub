@@ -1,7 +1,7 @@
 // src/app/exam/[versionId]/page.tsx
 import ExamPage from './ExamPage';
 import { Alert } from 'antd';
-import { getExamData } from '../../../services/exam.service'; // Import the service
+import examService from '../../../services/exam.service'; // Import the service
 import { ExamDetail, Question } from '../../../types/exam.type'; // Import types
 
 type Params = Promise<{ versionId: string }>
@@ -14,7 +14,7 @@ export default async function ExamDataFetcher({ params }: { params: Params }) {
   let error: string | null = null;
 
   try {
-    const data = await getExamData(versionId); // Use the service function
+    const data = await examService.getExamData(versionId); // Use the service function
     questions = data.questions;
     examDetail = data.examDetail;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

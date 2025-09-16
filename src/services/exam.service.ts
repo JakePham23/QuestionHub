@@ -1,46 +1,50 @@
 // src/services/exam.service.ts
-import { ExamDetail, Question, SavedExamData } from '../types/exam.type';
-import { api_backend } from '../utils/api';
+import axios from '@/utils/axios.customize';
+import { AxiosError } from 'axios';
+import { ExamDetail, Question } from '../types/exam.type';
 
-// This function centralizes the data fetching logic
-export async function getExamData(examId: string): Promise<{ questions: Question[]; examDetail: ExamDetail }> {
-  if (!examId) {
-    throw new Error('ID đề thi không tồn tại');
-  }
+const version = '/api';
 
-  try {
-    const [res1, res2] = await Promise.all([
-      fetch(`${api_backend}/exams/${examId}`, {
-        headers: { 'ngrok-skip-browser-warning': 'true' },
-        cache: 'no-store',
-      }),
-      fetch(`${api_backend}/exams/${examId}/questions`, {
-        headers: { 'ngrok-skip-browser-warning': 'true' },
-        cache: 'no-store',
-      }),
-    ]);
-
-    if (!res1.ok || !res2.ok) {
-      throw new Error('Không thể tải đề thi từ server');
+const examService = {
+  /**
+   * Fetches an exam's details and its questions concurrently.
+   * @param examId The ID of the exam to fetch.
+   * @returns A promise that resolves to an object containing the questions and exam details.
+   * @throws An error if the API call fails or the data is malformed.
+   */
+  async getExamData(examId: string): Promise<{ questions: Question[]; examDetail: ExamDetail }> {
+    if (!examId) {
+      throw new Error('ID đề thi không tồn tại');
     }
 
-    const result1 = await res1.json();
-    const result2 = await res2.json();
+    try {
+      const [examDetailRes, questionsRes] = await Promise.all([
+        axios.get(`${version}/exams/${examId}`, {
+          headers: { 'ngrok-skip-browser-warning': 'true' },
+        }),
+        axios.get(`${version}/exams/${examId}/questions`, {
+          headers: { 'ngrok-skip-browser-warning': 'true' },
+        }),
+      ]);
 
-    // Giả định examDetail nằm trong metadata của response 1
-    const examDetail: ExamDetail = result1.metadata;
+      const examDetail: ExamDetail = examDetailRes.data.metadata;
+      const questions: Question[] = questionsRes.data.metadata;
 
-    // Giả định questions nằm trong metadata của response 2
-    const questions: Question[] = result2.metadata;
-    
-    if (!examDetail || !questions) {
-      throw new Error("Cấu trúc dữ liệu đề thi không hợp lệ.");
+      if (!examDetail || !questions) {
+        throw new Error('Cấu trúc dữ liệu đề thi không hợp lệ.');
+      }
+
+      return { questions, examDetail };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err : any) {
+      console.error('Lỗi khi tải dữ liệu đề thi:', err);
+      // ✅ Correct usage: Check if the error is an AxiosError using `instanceof`
+      if (err instanceof AxiosError && err.response) {
+        throw new Error(`Lỗi từ server: ${err.response.status} - ${err.response.statusText}`);
+      }
+      throw new Error('Lỗi kết nối hoặc tải dữ liệu');
     }
-    
-    return { questions, examDetail };
+  },
+};
 
-  } catch (err) {
-    console.error('Lỗi khi tải dữ liệu đề thi:', err);
-    throw new Error('Lỗi kết nối hoặc tải dữ liệu');
-  }
-}
+export default examService;

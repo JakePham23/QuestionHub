@@ -27,7 +27,7 @@ import {
   FilterOutlined,
   DownOutlined
 } from '@ant-design/icons';
-import { getExerciseTopics, getExerciseTopicStatus } from '@/services/exercise.service';
+import exerciseService from '@/services/exercise.service';
 import { TopicExerciseInfo, ExerciseStatus, Exercise } from '@/types/exercise.type';
 import { getStatusText } from '@/utils/ExerciseStatusConverter';
 import { getCardStyle, getButtonColor } from '@/utils/ColorUtils';
@@ -70,8 +70,8 @@ const ExerciseDashboard: React.FC = () => {
         setLoading(true);
 
         const [topicsRes, statusRes] = await Promise.all([
-          getExerciseTopics(),
-          getExerciseTopicStatus()
+          exerciseService.getExerciseTopics(),
+          exerciseService.getExerciseTopicStatus()
         ]);
 
         const topics = topicsRes?.metadata ?? [];

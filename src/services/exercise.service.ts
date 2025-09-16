@@ -1,15 +1,10 @@
-import { StudyQuestion } from '@/types/exercise.type';
-import { api_backend } from '../utils/api';
-import { TopicExerciseInfo,  AnswerCorrect, ExerciseTopicStatusInfo} from '@/types/exercise.type';
+// src/services/exercise.service.ts
+import axios from '@/utils/axios.customize';
+import { StudyQuestion, TopicExerciseInfo, AnswerCorrect, ExerciseTopicStatusInfo } from '@/types/exercise.type';
+import { AxiosError } from 'axios';
 
-interface ExerciseTopicsResponse {
-  metadata: TopicExerciseInfo[];
-}
-interface ExerciseTopicStatusResponse {
-  metadata: ExerciseTopicStatusInfo[];
-}
-
-interface AnswerDetail {
+const version = '/api';
+export interface AnswerDetail {
   question_id: number;
   detail_id: number;
   solution_text: string | null;
@@ -17,131 +12,195 @@ interface AnswerDetail {
   media_url: string | null;
 }
 
-// ✅ Lấy danh sách chuyên đề
-export async function getExerciseTopics(): Promise<ExerciseTopicsResponse> {
-  const response = await fetch(`${api_backend}/exercises/exercise-topics`, {
-    headers: { 'ngrok-skip-browser-warning': 'true' },
-    cache: 'no-store',
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch exercise topics: ${response.statusText}`);
-  }
-
-  const result = await response.json();
-  return { metadata: result.metadata };
-}
-export async function getExerciseTopicStatus(): Promise<ExerciseTopicStatusResponse> {
-  // 1️⃣ Lấy user từ localStorage
-  const userJson = localStorage.getItem('user');
-  if (!userJson) return { metadata: [] }; // Return empty metadata if user not found
-  
-  const user = JSON.parse(userJson);
-  const userId = user?.id;
-  // if (!userId) throw new Error('Invalid user data in localStorage');
-
-  // 2️⃣ Gửi user_id lên backend
-  const response = await fetch(
-    `${api_backend}/exercises/exercise-topic-status?user_id=${userId}`,
-    {
-      headers: { 'ngrok-skip-browser-warning': 'true' },
-      cache: 'no-store',
+const exerciseService = {
+  /**
+   * Fetches the list of exercise topics.
+   * @returns A promise that resolves to an object with metadata containing an array of TopicExerciseInfo.
+   * @throws An error if the API call fails.
+   */
+  async getExerciseTopics(): Promise<{ metadata: TopicExerciseInfo[] }> {
+    const url = `${version}/exercises/exercise-topics`;
+    try {
+      const response = await axios.get(url, {
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+      });
+      return { metadata: response.data.metadata };
+    } catch (err) {
+      console.error('Lỗi khi tải danh sách chuyên đề:', err);
+      throw new Error(`Không thể tải chuyên đề bài tập.`);
     }
-  );
+  },
 
-  // 3️⃣ Xử lý phản hồi
-  // if (!response.ok) {
-  //   throw new Error(`Failed to fetch exercise topics: ${response.statusText}`);
-  // }
+  /**
+   * Fetches the status of exercise topics for a specific user.
+   * @returns A promise that resolves to an object with metadata containing an array of ExerciseTopicStatusInfo.
+   * @throws An error if user data is missing.
+   */
+  async getExerciseTopicStatus(): Promise<{ metadata: ExerciseTopicStatusInfo[] }> {
+    const userJson = localStorage.getItem('user');
+    if (!userJson) {
+      // Return empty metadata without throwing an error if no user is found
+      return { metadata: [] };
+    }
 
-  const result = await response.json();
-  return { metadata: result.metadata };
-}
+    const user = JSON.parse(userJson);
+    const userId = user?.id;
+    if (!userId) {
+      return { metadata: [] };
+    }
 
-// ✅ Lấy câu hỏi theo topic
-export async function getExerciseData(
-  topicId: number
-): Promise<{ questions: StudyQuestion[] }> {
-  if (!topicId) throw new Error('ID chuyên đề không tồn tại');
+    const url = `${version}/exercises/exercise-topic-status`;
+    try {
+      const response = await axios.get(url, {
+        params: { user_id: userId },
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+      });
+      return { metadata: response.data.metadata };
+    } catch (err) {
+      console.error('Lỗi khi tải trạng thái chuyên đề:', err);
+      throw new Error(`Không thể tải trạng thái chuyên đề.`);
+    }
+  },
 
-  const response = await fetch(`${api_backend}/exercises/${topicId}/questions`, {
-    headers: { 'ngrok-skip-browser-warning': 'true' },
-    cache: 'no-store',
-  });
+  /**
+   * Fetches questions for a given topic ID.
+   * @param topicId The ID of the topic.
+   * @returns A promise that resolves to an object containing an array of StudyQuestion.
+   * @throws An error if the topic ID is missing or the API call fails.
+   */
+  async getExerciseData(topicId: number): Promise<{ questions: StudyQuestion[] }> {
+    if (!topicId) {
+      throw new Error('ID chuyên đề không tồn tại');
+    }
 
-  if (!response.ok) {
-    throw new Error(`Không thể tải dữ liệu: ${response.statusText}`);
-  }
+    const url = `${version}/exercises/${topicId}/questions`;
+    try {
+      const response = await axios.get(url, {
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+      });
+      return { questions: response.data.metadata };
+    } catch (err) {
+      console.error('Lỗi khi tải câu hỏi:', err);
+      throw new Error(`Không thể tải dữ liệu câu hỏi.`);
+    }
+  },
 
-  const result = await response.json();
-  return { questions: result.metadata as StudyQuestion[] };
-}
+  /**
+   * Fetches the correct answers for a given topic.
+   * @param topicId The ID of the topic.
+   * @returns A promise that resolves to an object containing an array of AnswerCorrect.
+   * @throws An error if the API call fails.
+   */
+  async getAnswerCorrectByTopic(topicId: number): Promise<{ answerCorrects: AnswerCorrect[] }> {
+    const url = `${version}/exercises/${topicId}/answer-correct`;
+    try {
+      const response = await axios.get(url, {
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+      });
+      return { answerCorrects: response.data.metadata };
+    } catch (err) {
+      console.error('Lỗi khi tải đáp án đúng:', err);
+      throw new Error(`Không thể tải đáp án đúng.`);
+    }
+  },
 
-// ✅ Lấy đáp án đúng theo topic
-export async function getAnswerCorrectByTopic(
-  topicId: number
-): Promise<{answerCorrects: AnswerCorrect[]}> {
-  const response = await fetch(`${api_backend}/exercises/${topicId}/answer-correct`, {
-    headers: { 'ngrok-skip-browser-warning': 'true' },
-    cache: 'no-store',
-  });
-  // if (!response.ok) {
-  //   throw new Error(`Không thể tải đáp án đúng: ${response.statusText}`);
-  // }
+  /**
+   * Fetches detailed solutions for a given topic.
+   * @param topicId The ID of the topic.
+   * @returns A promise that resolves to an array of AnswerDetail.
+   * @throws An error if the API call fails.
+   */
+  async getAnswerDetailsByTopic(topicId: string): Promise<AnswerDetail[]> {
+    const url = `${version}/exercises/${topicId}/answer-detail`;
+    try {
+      const response = await axios.get(url, {
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+      });
+      return response.data.metadata;
+    } catch (err) {
+      console.error('Lỗi khi tải lời giải chi tiết:', err);
+      throw new Error(`Không thể tải lời giải chi tiết.`);
+    }
+  },
 
-  const result = await response.json();
-  return {answerCorrects: result.metadata as AnswerCorrect[]};
-}
-// ✅ Lấy lời giải chi tiết theo topic
-export async function getAnswerDetailsByTopic(
-  topicId: string
-): Promise<AnswerDetail[]> {
-  const response = await fetch(`${api_backend}/exercises/${topicId}/answer-detail`, {
-    headers: { 'ngrok-skip-browser-warning': 'true' },
-    cache: 'no-store',
-  });
+  /**
+   * Saves a user's attempt at a question.
+   * @param attempt The attempt data to save.
+   * @returns A promise that resolves to the saved data from the server.
+   * @throws An error if the API call fails.
+   */
+  async saveQuestionAttempt(attempt: {
+    user_id: number;
+    question_id: number;
+    selected_answer_id: number | null;
+    user_answer_text: string | null;
+    is_correct: boolean;
+  }) {
+    const url = `${version}/exercises/attempt`;
+    try {
+      const response = await axios.post(url, attempt, {
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        },
+      });
+      return response.data;
+    } catch (err) {
+      console.error('Lỗi khi lưu attempt:', err);
+      throw new Error('Lưu attempt thất bại');
+    }
+  },
 
-  if (!response.ok) {
-    throw new Error(`Không thể tải lời giải chi tiết: ${response.statusText}`);
-  }
+  /**
+   * Fetches a user's previous attempts for questions in a specific topic.
+   * @param topicId The ID of the topic.
+   * @param userId The ID of the user.
+   * @returns A promise that resolves to the attempt data from the server.
+   * @throws An error if the API call fails.
+   */
+  async getQuestionAttempts(topicId: number, userId: number) {
+    const url = `${version}/exercises/${topicId}/question-attempts`;
+    try {
+      const response = await axios.get(url, {
+        params: { user_id: userId },
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        },
+      });
+      return response.data;
+    } catch (err) {
+      console.error('Lỗi khi lấy attempts:', err);
+      throw new Error('Lấy attempts thất bại');
+    }
+  },
 
-  const result = await response.json();
-  return result.metadata as AnswerDetail[];
-}
-export async function saveQuestionAttempt(attempt: {
-  user_id: number;
-  question_id: number;
-  selected_answer_id: number | null;
-  user_answer_text: string | null;
-  is_correct: boolean;
-}) {
-  console.log(attempt);
-  const res = await fetch(`${api_backend}/exercises/attempt`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'ngrok-skip-browser-warning': 'true'
-    },
-    body: JSON.stringify(attempt)
-  });
+  /**
+   * Fetches detailed solutions for a single question.
+   * @param questionId The ID of the question.
+   * @returns A promise that resolves to an array of AnswerDetail.
+   * @throws An error if the question ID is missing or the API call fails.
+   */
+  async getAnswerDetailsByQuestion(questionId: string): Promise<AnswerDetail[]> {
+    if (!questionId) {
+      throw new Error('ID câu hỏi không tồn tại');
+    }
 
-  if (!res.ok) throw new Error('Lưu attempt thất bại');
-  return res.json();
-}
-
-
-export async function getQuestionAttempts(topicId: number, userId: number) {
-  const res = await fetch(
-    `${api_backend}/exercises/${topicId}/question-attempts?user_id=${userId}`,
-    {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'ngrok-skip-browser-warning': 'true'
+    const url = `${version}/exercises/${questionId}/answer-detail`;
+    try {
+      const response = await axios.get(url, {
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+      });
+      return response.data.metadata;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err : any) {
+      console.error('Lỗi khi tải chi tiết câu hỏi:', err);
+      if (err instanceof AxiosError && err.response) {
+        throw new Error(`Không thể tải chi tiết câu hỏi.`);
       }
+      throw new Error('Lỗi kết nối hoặc xử lý dữ liệu từ server');
     }
-  );
+  },
+};
 
-  if (!res.ok) throw new Error('Lấy attempts thất bại');
-  return res.json();
-}
+export default exerciseService;

@@ -64,24 +64,32 @@ const CurriculumSelection: React.FC<CurriculumSelectionProps> = ({
           </Text>
         </div>
 
-        {loading && (
+        {loading ? (
           <div className="spinner-wrapper">
             <div className="spinner-container">
               <Spin size="large" />
             </div>
             <div className="spinner-text">Đang tải dữ liệu...</div>
           </div>
-        )}
-        
-        {error && (
-          <Alert 
-            message="Có lỗi xảy ra" 
-            description={error} 
-            type="error" 
-            showIcon 
+        ) : error ? (
+          <Alert
+            message="Không thể tải dữ liệu chương trình học"
+            description={error}
+            type="error"
+            showIcon
             className="alert-message"
+            action={
+              <Button size="small" onClick={() => window.location.reload()}>
+                Thử lại
+              </Button>
+            }
           />
+        ) : (
+          <div className="content-wrapper">
+            {/* phần chọn lớp - môn - chương như bạn đã có */}
+          </div>
         )}
+
 
         {!loading && !error && (
           <div className="content-wrapper">
