@@ -1,5 +1,4 @@
 // src/components/layout/LayoutWrapper.tsx
-'use client';
 
 import { usePathname } from 'next/navigation';
 import AppHeader from './AppHeader';

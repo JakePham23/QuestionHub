@@ -1,4 +1,4 @@
-"use client";
+
 
 import React from "react";
 import { Modal, Form, Button, Input, Typography, notification } from "antd";
